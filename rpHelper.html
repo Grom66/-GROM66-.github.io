@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>RP Manager Elite v8.6 Gold Standard</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4f7942">
+
+    <style>
+        /* ЗОЛОТОЙ СТАНДАРТ СТИЛЕЙ (На базе v7.8 + v8.5 Visuals) */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { 
+            --bg: #0d0f0a; 
+            --card: rgba(20, 25, 18, 0.85); 
+            --accent: #4f7942; /* Армейский оливковый */
+            --text: #fff; 
+            --gray: #8e8e93; 
+            --red: #ff3b30;
+        }
+        
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; transition: background 0.5s ease; min-height: 100vh; overflow-x: hidden; }
+        .aura { position: fixed; top: -15%; right: -15%; width: 450px; height: 450px; background: var(--accent); filter: blur(120px); opacity: 0.12; z-index: -1; pointer-events: none; }
+        
+        /* КНОПКА МУЗЫКИ */
+        #music-btn {
+            position: fixed; top: 20px; right: 20px; width: 45px; height: 45px;
+            background: rgba(20, 25, 18, 0.95); border: 2px solid var(--accent); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; z-index: 10000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s;
+        }
+        #music-btn:active { transform: scale(0.9); }
+
+        /* ПРИВЕТСТВИЕ */
+        .welcome-page { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 30px; }
+        .server-title { color: var(--red); font-weight: 900; font-size: 16px; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 59, 48, 0.4); }
+        .welcome-title { font-size: 34px; font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; text-transform: uppercase; }
+
+        .status-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; font-size: 11px; color: var(--gray); font-weight: 700; }
+        .status-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 8px var(--accent); }
+
+        .card { background: var(--card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-main { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; border: none; border-radius: 16px; padding: 18px; min-height: 52px; font-weight: 700; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; transition: 0.3s; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        input, textarea, select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; padding: 14px; width: 100%; margin-bottom: 10px; font-size: 15px; outline: none; }
+
+        .custom-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; color: #fff; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; display: none; backdrop-filter: blur(5px); }
+        .modal-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 70%; background: #1c1c1e; border-top-left-radius: 25px; border-top-right-radius: 25px; z-index: 3001; transform: translateY(100%); transition: transform 0.3s ease; padding: 20px; overflow-y: auto; border-top: 1px solid var(--accent); }
+        .modal-bottom.show { transform: translateY(0); }
+        .opt-item { padding: 15px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 12px; font-size: 15px; }
+
+        .bank-card { background: linear-gradient(135deg, #1c1c1e 0%, #050505 100%); padding: 25px; border-radius: 26px; margin: 10px 0 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .bank-chip { width: 42px; height: 30px; background: linear-gradient(135deg, #f0d078, #b08d32); border-radius: 6px; margin-bottom: 20px; }
+        .deposit-slot { display: grid; grid-template-columns: 100px 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: rgba(10,10,10,0.92); backdrop-filter: blur(25px); display: none; border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom); z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 10px; color: var(--gray); font-weight: 600; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item span { display: block; font-size: 24px; margin-bottom: 3px; }
+        
+        .page { display: none; padding: 0 15px 120px; }
+        .active-page { display: block; }
+
+        /* AVATAR BIG */
+        .avatar { width: 145px; height: 145px; border-radius: 50%; border: 4px solid var(--accent); margin: 10px auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1c1c1e; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #label-ava { font-size: 60px; }
+        
+        #fileViewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; padding: env(safe-area-inset-top) 20px; text-align: center; }
+        .lecture-box { background: rgba(0,0,0,0.2); border-radius: 14px; padding: 15px; font-size: 14px; line-height: 1.6; color: #ddd; border-left: 4px solid var(--accent); margin: 12px 0; white-space: pre-wrap; cursor: pointer; }
+        .del-btn { background: #ff3b30; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; padding: 10px; }
+    </style>
+</head>
+<body id="mainBody" onclick="forceMusicStart()">
+    <div class="aura"></div>
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/3/3c/National_Anthem_of_Russia_%282000%29%2C_instrumental%2C_one_verse.ogg" type="audio/ogg">
+    </audio>
+    <div id="music-btn" onclick="toggleMusicManual(event)">🔇</div>
+
+    <div id="p0" class="page active-page">
+        <div class="welcome-page">
+            <div class="server-title">АРМИЯ | RMRP "АРБАТ"</div>
+            <div class="welcome-title">Добро пожаловать,<br><span style="color:var(--accent)">боец!</span></div>
+            <button class="btn-main" style="max-width:280px; margin-top:30px" onclick="nav(1)">НАЧАТЬ</button>
+        </div>
+    </div>
+
+    <div id="header-ui" style="display:none"><div class="status-header"><div><span class="status-dot"></span> RP SYSTEM v8.6</div><div id="clock">00:00:00</div></div></div>
+
+    <div class="modal-overlay" id="rankOverlay" onclick="closeModal('rank')"></div>
+    <div class="modal-bottom" id="rankModal">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b style="color:var(--accent)">АРМЕЙСКОЕ ЗВАНИЕ</b><b onclick="closeModal('rank')">✕</b></div>
+        <div id="rank-list">
+            <div class="opt-item" onclick="setRank('Рядовой')">Рядовой</div><div class="opt-item" onclick="setRank('Ефрейтор')">Ефрейтор</div>
+            <div class="opt-item" onclick="setRank('Сержант')">Сержант</div><div class="opt-item" onclick="setRank('Старший сержант')">Старший сержант</div>
+            <div class="opt-item" onclick="setRank('Старшина')">Старшина</div><div class="opt-item" onclick="setRank('Прапорщик')">Прапорщик</div>
+            <div class="opt-item" onclick="setRank('Старший прапорщик')">Старший прапорщик</div><div class="opt-item" onclick="setRank('Младший лейтенант')">Младший лейтенант</div>
+            <div class="opt-item" onclick="setRank('Лейтенант')">Лейтенант</div><div class="opt-item" onclick="setRank('Старший лейтенант')">Старший лейтенант</div>
+            <div class="opt-item" onclick="setRank('Капитан')">Капитан</div><div class="opt-item" onclick="setRank('Майор')">Майор</div>
+            <div class="opt-item" onclick="setRank('Подполковник')">Подполковник</div><div class="opt-item" onclick="setRank('Полковник')">Полковник</div>
+            <div class="opt-item" onclick="setRank('Генерал-майор')">Генерал-майор</div><div class="opt-item" onclick="setRank('Генерал-лейтенант')">Генерал-лейтенант</div>
+            <div class="opt-item" onclick="setRank('Генерал-полковник')">Генерал-полковник</div><div class="opt-item" onclick="setRank('Генерал армии')">Генерал армии</div>
+            <div class="opt-item" style="color:#ff3b30" onclick="setRank('')">Сбросить</div>
+        </div>
+    </div>
+
+    <div id="p1" class="page">
+        <div class="avatar-wrap" style="text-align:center;">
+            <div class="avatar" onclick="document.getElementById('in-ava').click()"><img id="view-ava" style="display:none;"><span id="label-ava">👤</span></div>
+            <input type="file" id="in-ava" style="display:none" onchange="storeImg(this, 'avatar')">
+            <div id="badge" style="background:var(--accent); color:#fff; padding:5px 15px; border-radius:20px; font-size:10px; font-weight:900; margin: 5px 0 15px; display:inline-block;">ВС РФ</div>
+        </div>
+        <div class="card">
+            <h2>Личное дело</h2>
+            <input type="text" id="name" placeholder="Имя Фамилия" oninput="storeData()">
+            <input type="text" id="static" placeholder="ID: 000000" oninput="storeData()">
+            <div class="custom-select" onclick="openModal('rank')"><span id="rank-display">Звание: Не выбрано</span><span>▼</span></div>
+            <button class="btn-main" style="margin-top:10px;" onclick="nav(7)">⏱️ ТАЙМЕР / СЕКУНДОМЕР</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <button class="btn-main btn-secondary" onclick="nav(5)">🎓 ЛЕКЦИИ</button>
+                <button class="btn-main btn-secondary" onclick="nav(6)">⚖️ ЗАКОНЫ</button>
+            </div>
+        </div>
+        <div class="card"><h2>Заметки</h2><textarea id="notes" style="min-height:100px" placeholder="Важные записи..." oninput="storeData()"></textarea></div>
+    </div>
+
+    <div id="p2" class="page">
+        <h1>СБОРБАНК</h1>
+        <div class="bank-card">
+            <div class="bank-chip"></div>
+            <div style="font-size:10px; color:var(--gray); margin-bottom:5px;">ОСНОВНОЙ СЧЕТ</div>
+            <input type="text" id="cash" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+        <div class="card">
+            <h2>Накопительный счет</h2>
+            <input type="text" id="savings" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+        <div class="card">
+            <div class="deposit-slot">
+                <select id="dep-t1" onchange="storeData()"><option>Онлайн</option><option>Оффлайн</option></select>
+                <input type="text" id="dep-v1" placeholder="Сумма (макс. 5 млн)" oninput="validateDep(this); formatRubles(this); storeData()">
+            </div>
+            <div class="deposit-slot">
+                <select id="dep-t2" onchange="storeData()"><option>Онлайн</option><option>Оффлайн</option></select>
+                <input type="text" id="dep-v2" placeholder="Сумма (макс. 5 млн)" oninput="validateDep(this); formatRubles(this); storeData()">
+            </div>
+        </div>
+    </div>
+
+    <div id="p3" class="page">
+        <h1>Имущество</h1>
+        <div class="card"><h2>🏠 Жилье</h2><div id="l-homes"></div><button class="btn-main" onclick="addNew('homes')">+ Добавить</button></div>
+        <div class="card"><h2>🚗 Авто</h2><div id="l-autos"></div><button class="btn-main" onclick="addNew('autos')">+ Добавить</button></div>
+        <div class="card"><h2>💼 Бизнес</h2><div id="l-biz"></div><button class="btn-main" onclick="addNew('biz')">+ Добавить</button></div>
+    </div>
+
+    <div id="p4" class="page">
+        <h1>Навигация</h1>
+        <div class="card"><label class="btn-main" for="in-map">📍 ДОБАВИТЬ КАРТУ</label><input type="file" id="in-map" style="display:none" onchange="storeImg(this, 'maps', true)"></div>
+        <div id="maps-list"></div>
+    </div>
+
+    <div id="p5" class="page">
+        <h1>Лекторий</h1>
+        <div class="card">
+            <input type="text" id="lec-t" placeholder="Тема лекции">
+            <textarea id="lec-b" style="min-height:120px" placeholder="Текст лекции..."></textarea>
+            <label class="btn-main btn-secondary" style="margin-bottom:10px;">📎 ФАЙЛ <input type="file" id="lec-f" style="display:none"></label>
+            <button class="btn-main" onclick="saveItem('lecs')">СОХРАНИТЬ ЛЕКЦИЮ</button>
+        </div>
+        <div id="l-lecs"></div>
+        <button class="btn-main btn-secondary" style="margin-top:20px" onclick="nav(1)">← НАЗАД</button>
+    </div>
+
+    <div id="p6" class="page">
+        <h1>Законодательство</h1>
+        <div class="card">
+            <input type="text" id="law-t" placeholder="Название статьи">
+            <textarea id="law-b" style="min-height:120px" placeholder="Суть закона..."></textarea>
+            <label class="btn-main btn-secondary" style="margin-bottom:10px;">📎 ФОТО ДОКУМЕНТА <input type="file" id="law-f" style="display:none"></label>
+            <button class="btn-main" onclick="saveItem('laws')">ОПУБЛИКОВАТЬ</button>
+        </div>
+        <div id="l-laws"></div>
+        <button class="btn-main btn-secondary" style="margin-top:20px" onclick="nav(1)">← НАЗАД</button>
+    </div>
+
+    <div id="p7" class="page">
+        <h1>Таймер</h1>
+        <div class="card">
+            <div style="font-size:80px; text-align:center; margin:40px 0; font-family:monospace; color:var(--accent)" id="t-val">00:00</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <button class="btn-main" onclick="startTimer()">СТАРТ</button><button class="btn-main btn-secondary" onclick="stopTimer()">ПАУЗА</button>
+                <button class="btn-main btn-secondary" style="grid-column: span 2; color:#ff3b30;" onclick="resetTimer()">СБРОСИТЬ</button>
+            </div>
+        </div>
+        <button class="btn-main btn-secondary" style="margin-top:20px" onclick="nav(1)">← НАЗАД К ПРОФИЛЮ</button>
+    </div>
+
+    <nav class="nav" id="bottom-nav">
+        <div class="nav-item active" id="n1" onclick="nav(1)"><span>👤</span>Профиль</div>
+        <div class="nav-item" id="n2" onclick="nav(2)"><span>💳</span>Банк</div>
+        <div class="nav-item" id="n3" onclick="nav(3)"><span>🏘️</span>База</div>
+        <div class="nav-item" id="n4" onclick="nav(4)"><span>📍</span>Карты</div>
+    </nav>
+
+    <div id="fileViewer" onclick="this.style.display='none'"><div id="fileData" style="margin-top:40px"></div><p style="color:var(--gray)">Нажмите, чтобы закрыть</p></div>
+
+    <script>
+        let db, tSec = 0, tInt;
+        const audio = document.getElementById('bgMusic');
+        let musicStarted = false;
+
+        // --- ЛОГИКА АГРЕССИВНОГО ЗАПУСКА МУЗЫКИ ---
+        
+        // Попытка запуска при загрузке
+        window.addEventListener('load', () => {
+            audio.volume = 0.3;
+            audio.play().then(() => {
+                musicStarted = true;
+                updateMusicBtn();
+            }).catch(() => {
+                console.log("Автозапуск заблокирован. Ждем касания.");
+            });
+        });
+
+        // Функция принудительного запуска при ЛЮБОМ клике/тапе
+        function forceMusicStart() {
+            if (!musicStarted) {
+                audio.volume = 0.3;
+                audio.play().then(() => {
+                    musicStarted = true;
+                    updateMusicBtn();
+                });
+            }
+        }
+
+        // Ручное управление кнопкой
+        function toggleMusicManual(e) {
+            e.stopPropagation(); // Чтобы не срабатывал forceMusicStart дважды
+            if (audio.paused) {
+                audio.play();
+                musicStarted = true;
+            } else {
+                audio.pause();
+            }
+            updateMusicBtn();
+        }
+
+        function updateMusicBtn() {
+            document.getElementById('music-btn').innerText = audio.paused ? "🔇" : "🔊";
+        }
+
+        // --- СОХРАНЕНИЕ ДАННЫХ (Ключи v7.8) ---
+        const request = indexedDB.open("GtaRpDB_VS_RF", 1);
+        request.onupgradeneeded = e => { e.target.result.createObjectStore("files", {keyPath:"id"}); };
+        request.onsuccess = e => { db = e.target.result; loadAll(); };
+
+        function nav(n) { 
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); 
+            document.getElementById('p'+n).classList.add('active-page'); 
+            const navBar = document.getElementById('bottom-nav'), header = document.getElementById('header-ui');
+            if (n === 0) { navBar.style.display = 'none'; header.style.display = 'none'; } 
+            else { navBar.style.display = 'flex'; header.style.display = 'flex'; }
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); 
+            if(n > 0 && n < 5) document.getElementById('n'+n).classList.add('active'); 
+            window.scrollTo(0,0); 
+        }
+
+        function validateDep(i) {
+            let val = parseInt(i.value.replace(/\D/g, '')) || 0;
+            if(val > 5000000) { i.value = "5 000 000 ₽"; alert("Лимит вклада — 5 млн!"); }
+        }
+        
+        function startTimer() { if(!tInt) tInt = setInterval(() => { tSec++; let m=Math.floor(tSec/60), s=tSec%60; document.getElementById('t-val').innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`; }, 1000); }
+        function stopTimer() { clearInterval(tInt); tInt = null; }
+        function resetTimer() { stopTimer(); tSec = 0; document.getElementById('t-val').innerText = "00:00"; }
+
+        function openModal(id) { document.getElementById(id + 'Overlay').style.display = 'block'; setTimeout(() => document.getElementById(id + 'Modal').classList.add('show'), 10); }
+        function closeModal(id) { document.getElementById(id + 'Modal').classList.remove('show'); setTimeout(() => document.getElementById(id + 'Overlay').style.display = 'none', 300); }
+        function setRank(v) { window.currentRank = v; document.getElementById('rank-display').innerText = v ? "Звание: " + v : "Звание: Не выбрано"; storeData(); closeModal('rank'); }
+        function formatRubles(i) { let v = i.value.replace(/\D/g, ""); i.value = v ? new Intl.NumberFormat('ru-RU').format(v) + " ₽" : ""; }
+
+        function storeData() {
+            const d = {
+                name: document.getElementById('name').value, static: document.getElementById('static').value, notes: document.getElementById('notes').value,
+                rank: typeof window.currentRank !== 'undefined' ? window.currentRank : '', cash: document.getElementById('cash').value, savings: document.getElementById('savings').value,
+                depT1: document.getElementById('dep-t1').value, depV1: document.getElementById('dep-v1').value,
+                depT2: document.getElementById('dep-t2').value, depV2: document.getElementById('dep-v2').value,
+                homes: getAssets('homes'), autos: getAssets('autos'), biz: getAssets('biz')
+            };
+            localStorage.setItem('rp_data_vsrf_v78', JSON.stringify(d));
+        }
+        function getAssets(id) { return Array.from(document.querySelectorAll('#l-'+id+' .asset-row')).map(r => ({n: r.querySelector('.in-name').value, p: r.querySelector('.in-price').value})); }
+
+        function loadAll() {
+            const d = JSON.parse(localStorage.getItem('rp_data_vsrf_v78') || '{}');
+            document.getElementById('name').value = d.name || ''; document.getElementById('static').value = d.static || '';
+            document.getElementById('notes').value = d.notes || ''; document.getElementById('cash').value = d.cash || '';
+            document.getElementById('savings').value = d.savings || '';
+            document.getElementById('dep-t1').value = d.depT1 || 'Онлайн'; document.getElementById('dep-v1').value = d.depV1 || '';
+            document.getElementById('dep-t2').value = d.depT2 || 'Онлайн'; document.getElementById('dep-v2').value = d.depV2 || '';
+            window.currentRank = d.rank || '';
+            document.getElementById('rank-display').innerText = window.currentRank ? "Звание: " + window.currentRank : "Звание: Не выбрано";
+            ['homes','autos','biz'].forEach(t => { document.getElementById('l-'+t).innerHTML = ''; if(d[t]) d[t].forEach(v => addNew(t, v.n, v.p)); });
+            renderList('lecs'); renderList('laws'); renderFiles();
+        }
+
+        function addNew(t, n = '', p = '') {
+            const div = document.createElement('div'); div.className = "asset-row"; div.style = "display:grid; grid-template-columns: 1fr 100px 40px; gap:8px; margin-bottom:10px;";
+            div.innerHTML = `<input type="text" class="in-name" value="${n}" placeholder="Назв."><input type="text" class="in-price" value="${p}" placeholder="₽" oninput="formatRubles(this); storeData()"><button class="del-btn" onclick="this.parentElement.remove();storeData()">✕</button>`;
+            document.getElementById('l-'+t).appendChild(div);
+        }
+
+        function saveItem(type) {
+            const pfx = type === 'lecs' ? 'lec' : 'law';
+            const t = document.getElementById(pfx+'-t').value, b = document.getElementById(pfx+'-b').value, f = document.getElementById(pfx+'-f').files[0];
+            if(!t || !b) return alert("Заполните поля!");
+            const data = { id: Date.now(), t, b };
+            if(f) { const r = new FileReader(); r.onload = e => { data.fData = e.target.result; data.fType = f.type; finishSave(type, data); }; r.readAsDataURL(f); } 
+            else finishSave(type, data);
+        }
+        function finishSave(type, data) {
+            let items = JSON.parse(localStorage.getItem('rp_v_'+type) || '[]');
+            items.push(data); localStorage.setItem('rp_v_'+type, JSON.stringify(items));
+            alert("Сохранено!"); renderList(type);
+        }
+
+        function renderList(type) {
+            const items = JSON.parse(localStorage.getItem('rp_v_'+type) || '[]');
+            const cont = document.getElementById(type === 'lecs' ? 'l-lecs' : 'l-laws'); cont.innerHTML = '';
+            items.reverse().forEach(item => {
+                const div = document.createElement('div'); div.className = "card";
+                div.innerHTML = `<b>${item.t}</b><div class="lecture-box" onclick="navigator.clipboard.writeText(this.innerText);alert('Текст скопирован!')">${item.b}</div>
+                ${item.fData ? `<button class="btn-main btn-secondary" style="height:35px; margin-bottom:10px" onclick="viewFile('${item.fData}', '${item.fType}')">👁️ ФАЙЛ</button>` : ''}
+                <button class="del-btn" style="width:100%" onclick="delItem('${type}', ${item.id})">Удалить</button>`;
+                cont.appendChild(div);
+            });
+        }
+        function delItem(type, id) { if(confirm("Удалить?")) { let items = JSON.parse(localStorage.getItem('rp_v_'+type)).filter(x => x.id !== id); localStorage.setItem('rp_v_'+type, JSON.stringify(items)); renderList(type); } }
+        function viewFile(data, type) { 
+            const v = document.getElementById('fileData');
+            v.innerHTML = type.includes('image') ? `<img src="${data}" style="max-width:100%; border-radius:15px">` : `<iframe src="${data}" style="width:100%; height:70vh; border:none"></iframe>`;
+            document.getElementById('fileViewer').style.display='block';
+        }
+
+        function storeImg(i, t, list = false) {
+            const f = i.files[0]; if(!f) return;
+            const r = new FileReader(); r.onload = e => { db.transaction("files", "readwrite").objectStore("files").put({ id: list ? t + Date.now() : t, data: e.target.result }).oncomplete = () => loadAll(); }; r.readAsDataURL(f);
+        }
+        function renderFiles() {
+            db.transaction("files").objectStore("files").getAll().onsuccess = e => {
+                document.getElementById('maps-list').innerHTML = '';
+                e.target.result.forEach(f => {
+                    if(f.id === 'avatar') { document.getElementById('view-ava').src = f.data; document.getElementById('view-ava').style.display='block'; document.getElementById('label-ava').style.display='none'; }
+                    if(f.id.startsWith('maps')) {
+                        const div = document.createElement('div'); div.className = "card";
+                        div.innerHTML = `<img src="${f.data}" style="width:100%; border-radius:12px; margin-bottom:10px;"><button class="del-btn" style="width:100%" onclick="delFile('${f.id}')">Удалить карту</button>`;
+                        document.getElementById('maps-list').appendChild(div);
+                    }
+                });
+            };
+        }
+        function delFile(id) { if(confirm("Удалить?")) db.transaction("files", "readwrite").objectStore("files").delete(id).onsuccess = () => loadAll(); }
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    </script>
+</body>
+</html>
