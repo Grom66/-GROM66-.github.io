@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>RP Manager Elite v10.1 Fix</title>
+    <style>
+/* Добавляем оранжевый в палитру */
+:root {
+    --bg: #0d0f0a; 
+    --card: rgba(20, 25, 18, 0.95); 
+    --accent: #4f7942; 
+    --text: #fff; 
+    --gray: #8e8e93; 
+    --red: #ff3b30;
+    --orange: #ff8c00; /* Тот самый тревожный оранжевый */
+}
+
+/* Специальный класс для режима тюрьмы */
+body.prison-mode {
+    --accent: var(--orange); /* Заменяем основной зеленый на оранжевый */
+}
+
+/* Добавим эффект для карточек именно в этом разделе */
+#p8 .card {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.1);
+}
+
+/* Делаем заголовки в тюрьме более агрессивными */
+#p8 h1, #p8 h2 {
+    color: var(--orange);
+    text-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+}
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; user-select: none; }
+
+/* --- ГЛАВНЫЙ ЭКРАН (P0) --- */
+        #p0 { background-color: #050604 !important; position: relative !important; overflow: hidden !important; min-height: 100vh !important; }
+        .scanner-grid { position: absolute !important; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(79, 121, 66, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(79, 121, 66, 0.15) 1px, transparent 1px) !important; background-size: 30px 30px !important; z-index: 1 !important; pointer-events: none; }
+        .scan-line { position: absolute !important; width: 200% !important; left: -50% !important; z-index: 3 !important; pointer-events: none; }
+        .line-1 { height: 2px; background: rgba(79, 121, 66, 0.8) !important; box-shadow: 0 0 20px #4f7942 !important; animation: scanMove 4s linear infinite; }
+        .line-2 { height: 120px; background: linear-gradient(to bottom, transparent, rgba(79, 121, 66, 0.1), transparent) !important; animation: scanMove 7s linear infinite reverse; }
+        @keyframes scanMove { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
+        .tactic-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
+        .tactic-main-line { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .tactic-text { font-size: 11px; font-weight: 900; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
+        .tactic-bracket { color: var(--accent); opacity: 0.4; font-weight: 200; font-size: 24px; font-family: monospace; }
+        .tactic-sub-code { font-family: 'Courier New', monospace; font-size: 8px; color: var(--gray); letter-spacing: 1px; opacity: 0.5; margin-top: 8px; text-transform: uppercase; }
+        .fade-in-top { animation: fadeInDown 1.5s ease-out forwards; opacity: 0; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 0.7; transform: translateY(0); } }
+
+/* --- ИНТЕРФЕЙС И КНОПКИ --- */
+        .page { display: none; padding: 0 15px 120px; }
+        .active-page { display: block; }
+        .card { background: var(--card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.08); }
+        
+        .btn-main, .object-item { display: flex; align-items: center; justify-content: center; text-align: center; width: 100%; height: 54px; background: #1a221a !important; color: var(--accent) !important; border: 2px solid var(--accent) !important; border-radius: 12px; font-size: 11px !important; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); margin-bottom: 10px; padding: 0 10px; }
+        .btn-main:active, .object-item:active { background: var(--accent) !important; color: #000 !important; transform: scale(0.97); }
+        .btn-secondary { height: 50px; background: #0d0f0a !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; opacity: 0.8; }
+        
+        /* Исправленные инпуты */
+        input, textarea, select { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; padding: 14px; width: 100%; margin-bottom: 10px; font-size: 15px; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        
+        /* Спец инпуты */
+        .bank-input { font-family: 'Courier New', monospace !important; font-size: 24px !important; font-weight: bold; background: rgba(0,0,0,0.2) !important; text-align: center; color: #fff !important; }
+        
+        /* Исправленный инпут таймера */
+        .timer-input-fix {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            font-size: 18px !important;
+            font-weight: bold;
+            background: rgba(255,255,255,0.08) !important;
+            border: 1px solid var(--accent) !important;
+            color: #fff !important;
+            text-align: center;
+        }
+
+/* --- ШАПКА И НАВИГАЦИЯ --- */
+        #header-ui { display: none; }
+        .status-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: rgba(0, 0, 0, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 11px; letter-spacing: 1px; color: var(--gray); width: 100%; z-index: 500; }
+        
+        .nav { position: fixed; bottom: 0; width: 100%; background: #0d0f0a; border-top: 1px solid rgba(255,255,255,0.1); display: none; padding-bottom: env(safe-area-inset-bottom); z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 10px; color: var(--gray); font-weight: 600; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item span { display: block; font-size: 24px; margin-bottom: 3px; }
+
+        .side-panel { position: fixed; top: 0; right: 0; width: 280px; height: 100%; background: #0f120f; border-left: 2px solid var(--accent); z-index: 20000; transform: translateX(100%); transition: transform 0.3s ease-out; padding: 60px 20px 20px; box-shadow: -5px 0 25px rgba(0,0,0,0.9); }
+        .side-panel.open { transform: translateX(0); }
+        .overlay-shadow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 19999; display: none; }
+
+/* --- ДОП ЭЛЕМЕНТЫ --- */
+        .section-title { font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; color: #fff; display: block; }
+        .avatar { width: 145px; height: 145px; border-radius: 50%; border: 4px solid var(--accent); margin: 10px auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1c1c1e; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #music-btn { position: fixed; top: 45px; right: 20px; width: 45px; height: 45px; background: rgba(20, 25, 18, 0.95); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+/* --- МОДАЛКИ (ИСПРАВЛЕНЫ) --- */
+        .cal-overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30000; display: none; }
+        
+        /* Исправленная нижняя панель */
+        .modal-bottom { 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75%; 
+            background: #121212; 
+            border-top: 2px solid var(--accent);
+            border-top-left-radius: 25px; border-top-right-radius: 25px; 
+            z-index: 30001; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            padding: 25px; overflow-y: auto; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,1);
+        }
+        .modal-bottom.show { transform: translateY(0); }
+        
+        .opt-item { 
+            padding: 18px; 
+            background: #1e1e1e; /* Светлее для контраста */
+            margin-bottom: 10px; border-radius: 12px; cursor: pointer; 
+            font-weight: 700; text-align: center; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            font-size: 15px; color: #fff;
+            display: block; /* Важно */
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .opt-item:active { background: var(--accent); color: #000; }
+
+        .cal-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 350px; background: #121612; border: 2px solid var(--accent); border-radius: 20px; padding: 20px; transition: 0.3s; opacity: 0; }
+        .cal-modal.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-cell { padding: 10px 0; font-size: 13px; cursor: pointer; border-radius: 8px; color: #fff; position: relative; transition: 0.2s; }
+        .day-cell:hover { background: var(--accent); color: #000; }
+        .day-cell.today { border: 1px solid var(--accent); color: var(--accent); }
+        .day-cell.has-note::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--red); border-radius: 50%; }
+        .day-name { font-size: 10px; color: var(--gray); font-weight: 900; padding-bottom: 10px; }
+        
+        .info-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f140f; z-index: 35000; display: none; overflow-y: auto; padding: 20px; }
+        .info-content h2 { color: var(--accent); margin-top: 20px; text-transform: uppercase; font-size: 18px; }
+        .info-content p { color: #ccc; line-height: 1.6; font-size: 14px; margin-bottom: 15px; }
+        .info-content img { width: 100%; border-radius: 12px; border: 1px solid var(--accent); margin: 10px 0; }
+
+        .objects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .object-item { margin-bottom: 0; color: #ffffff !important; }
+        .main-location { background: linear-gradient(45deg, #1a2a16, #2d4526); border: 2px solid var(--accent); border-radius: 22px; padding: 30px 20px 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 0 20px rgba(79, 121, 66, 0.3); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        .main-location::before { content: "ГЛАВНЫЙ ШТАБ"; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 900; color: var(--accent); opacity: 0.8; letter-spacing: 2px; white-space: nowrap; }
+        .main-location-title { font-size: 22px; font-weight: 900; color: #fff; margin: 0; letter-spacing: 1px; }
+        .main-location-sub { font-size: 10px; color: var(--gray); text-transform: uppercase; margin-top: 5px; }
+        .premium-card { background: linear-gradient(135deg, #1a2a16 0%, #4f7942 100%); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        .chip { width: 45px; height: 35px; background: linear-gradient(135deg, #d4af37 0%, #f5e0a3 100%); border-radius: 8px; margin-bottom: 20px; }
+        .small-select { width: auto; height: 32px; padding: 0 8px; font-size: 12px; margin: 0; background: var(--accent); border: none; }
+        .del-btn { background: var(--red); color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+
+/* Эффект свечения края */
+.edge-hint {
+    position: fixed;
+    left: -15px;
+    top: 0;
+    width: 20px;
+    height: 100%;
+    background: var(--accent);
+    filter: blur(20px);
+    opacity: 0.15;
+    z-index: 999;
+    pointer-events: none;
+}
+
+/* Стиль системного лога (тоста) */
+.system-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 15, 10, 0.98); /* Очень темный зеленый оттенок */
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 30px;
+    font-family: 'Courier New', monospace; /* Моноширинный шрифт */
+    z-index: 10000;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-align: center;
+    width: 85%;
+    box-shadow: inset 0 0 20px rgba(79, 121, 66, 0.2), 0 0 40px rgba(0, 0, 0, 0.8);
+    border-radius: 2px;
+}
+
+/* Декоративные уголки */
+.system-toast::before, .system-toast::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--accent);
+}
+
+.system-toast::before { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+.system-toast::after { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+
+/* Анимация появления как у терминала */
+@keyframes terminalPulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.system-toast-content {
+    animation: terminalPulse 0.2s infinite;
+}
+/* Эффект пульсации для активного кулдауна */
+@keyframes pulse-red {
+    0% { text-shadow: 0 0 5px var(--red); opacity: 1; }
+    50% { text-shadow: 0 0 15px var(--red); opacity: 0.8; }
+    100% { text-shadow: 0 0 5px var(--red); opacity: 1; }
+}
+
+/* Эффект спокойного дыхания для готового статуса */
+@keyframes pulse-green {
+    0% { text-shadow: 0 0 5px var(--accent); opacity: 1; }
+    50% { text-shadow: 0 0 10px var(--accent); opacity: 0.7; }
+    100% { text-shadow: 0 0 5px var(--accent); opacity: 1; }
+}
+
+.timer-active {
+    animation: pulse-red 2s infinite;
+    font-weight: bold;
+    color: var(--red) !important;
+}
+
+.timer-ready {
+    animation: pulse-green 3s infinite;
+    color: var(--accent) !important;
+}
+.blink-dot {
+    animation: blink 1.5s infinite;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 5px var(--accent); }
+    50% { opacity: 0.3; box-shadow: none; }
+}
+/* Контейнер для фото/иконки в профиле */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(79, 121, 66, 0.2);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 100px;
+    background: #1a1c14;
+    border: 1px solid var(--accent);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Эффект штрих-кода */
+.barcode-decor {
+    width: 100%;
+    height: 30px;
+    margin-top: 15px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--gray),
+        var(--gray) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    opacity: 0.2;
+}
+
+/* Метка статуса */
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+    </style>
+</head>
+<body>
+
+<div class="edge-hint"></div>
+
+<audio id="bgMusic" loop preload="auto"><source src="gymn.mp3" type="audio/mpeg"></audio>
+<div class="aura"></div>
+<div id="sideOverlay" class="overlay-shadow" onclick="toggleSideMenu(false)"></div>
+
+<div id="sidePanel" class="side-panel">
+    <h3 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Быстрый доступ</h3>
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
+    <button class="btn-main" onclick="openCalendar()" style="margin-bottom:15px;">📅 Календарь</button>
+    <button class="btn-main" onclick="toggleSideMenu(false); nav(8)" style="margin-bottom:15px;">⚖️ Срок / Наказание</button>
+    <button class="btn-main" onclick="toggleSideMenu(false); nav(9)" style="margin-bottom:15px;">🚚 ПОСТАВКИ ВС РФ</button>
+    <button class="btn-main btn-secondary" onclick="toggleSideMenu(false); nav(1)">Профиль</button>
+    <button class="btn-main btn-secondary" onclick="toggleSideMenu(false); nav(4)">Навигация</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div>
+        <span style="color: var(--accent); font-weight: bold; letter-spacing: 2px;">ВСРФ // ТЕРМИНАЛ</span>
+        <div id="system-clock" style="font-size: 10px; color: var(--gray); font-family: monospace;">00:00:00 MSK</div>
+    </div>
+    <div style="text-align: right;">
+        <div style="font-size: 9px; color: var(--accent); opacity: 0.8;">СВЯЗЬ: УСТАНОВЛЕНА</div>
+        <div class="blink-dot" style="display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%;"></div>
+    </div>
+</div>
+
+</div>
+
+<div id="music-btn" onclick="toggleMusicManual(event)">🔇</div>
+
+<div id="calOverlay" class="cal-overlay" onclick="closeCalendar()">
+    <div id="calModal" class="cal-modal" onclick="event.stopPropagation()">
+        <div class="calendar-header">
+            <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--accent); font-size:20px;">◀</button>
+            <div id="monthLabel">Январь 2026</div>
+            <button onclick="changeMonth(step=1)" style="background:none; border:none; color:var(--accent); font-size:20px;">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <button class="btn-main btn-secondary" style="margin-top:20px; color:var(--red)" onclick="closeCalendar()">ЗАКРЫТЬ</button>
+    </div>
+</div>
+
+<div id="p0" class="page active-page">
+    <div class="scanner-grid"></div>
+    <div class="scan-line line-1"></div>
+    <div class="scan-line line-2"></div>
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center; padding:30px; position:relative; z-index:10;">
+        <div class="fade-in-top tactic-header">
+            <div class="tactic-main-line">
+                <span class="tactic-bracket">[</span><span class="tactic-text">Центр мобильного управления</span><span class="tactic-bracket">]</span>
+            </div>
+            <div class="tactic-sub-code">SYS.v78_ARBAT_INIT... OK</div>
+        </div>
+        <div style="color:var(--red); font-weight:900; font-size:18px; text-transform:uppercase; margin-bottom:20px; letter-spacing: 1px;">АРМИЯ | RMRP "АРБАТ"</div>
+        <div style="font-size:38px; font-weight:800; margin-bottom:18px; letter-spacing: -1px;">ДОБРО ПОЖАЛОВАТЬ!</div>
+        <button class="btn-main" onclick="startApp()">НАЧАТЬ СЛУЖБУ!</button>
+    </div>
+</div>
+
+<div id="header-ui">
+    <div class="status-header">
+        <div><span style="color:var(--accent)">●</span> GOLD STANDARD v10.0</div>
+        <div id="clock" style="font-weight: bold; color: #fff;">00:00:00</div>
+    </div>
+</div>
+
+<div id="p1" class="page">
+    <div style="text-align:center;">
+        <div class="avatar" onclick="document.getElementById('in-ava').click()"><img id="view-ava" style="display:none;"><span id="label-ava" style="font-size:60px">👤</span></div>
+        <input type="file" id="in-ava" style="display:none" onchange="storeImg(this, 'avatar')">
+        
+        <div style="background:var(--accent); color:#fff; padding:5px 15px; border-radius:20px; font-size:10px; font-weight:900; margin: 10px 0; display:inline-block;">ВС РФ</div>
+        
+        <div style="margin-bottom: 10px;">
+            <input type="text" id="callsign" placeholder="[ ПОЗЫВНОЙ ]" oninput="storeData()" 
+                   style="background:none; border:none; color:var(--accent); text-align:center; font-size:18px; font-weight:bold; width:80%; text-transform:uppercase; outline:none;">
+        </div>
+    </div>
+
+    <div class="card">
+        <input type="text" id="surname" placeholder="Фамилия" oninput="storeData()" style="margin-bottom:8px;">
+        <input type="text" id="name" placeholder="Имя" oninput="storeData()" style="margin-bottom:8px;">
+        <input type="text" id="patronymic" placeholder="Отчество" oninput="storeData()" style="margin-bottom:8px;">
+        
+        <input type="text" id="static" placeholder="ID: 000000" oninput="storeData()">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="btn-main btn-secondary" onclick="openModal('rank')"><span id="rank-display">Звание</span></div>
+            <div class="btn-main btn-secondary" onclick="openModal('unit')"><span id="unit-display">Подразделение</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+            <button class="btn-main btn-secondary" onclick="nav(5)">🎓 ЛЕКЦИИ</button>
+            <button class="btn-main btn-secondary" onclick="nav(6)">⚖️ ЗАКОНЫ</button>
+        </div>
+        <button class="btn-main" style="margin-top:10px" onclick="nav(7)">⏱️ ТАЙМЕР</button>
+    </div>
+    <div class="card"><span class="section-title" style="font-size:14px">ЗАМЕТКИ</span><textarea id="notes" style="min-height:100px" placeholder="..." oninput="storeData()"></textarea></div>
+    <div class="card">
+        <span class="section-title">ОХРАНЯЕМЫЕ ОБЪЕКТЫ</span>
+        <div class="objects-grid">
+            <div class="object-item" onclick="openInfo('cgb')">ЦГБ 3 (ЦГБ 7)</div>
+            <div class="object-item" onclick="openInfo('fso')">ПОСТАВКИ ФСО</div>
+            <div class="object-item" onclick="openInfo('vsrf')">ПОСТАВКИ ВС РФ</div>
+            <div class="object-item" onclick="openInfo('kraz')">ВОЙНА ЗА КрАЗ</div>
+        </div>
+    </div>
+</div>
+
+<div id="infoOverlay" class="info-overlay">
+    <div id="infoData" class="info-content"></div>
+    <button class="btn-main btn-secondary" onclick="closeInfo()" style="margin-top:30px;">⬅ НАЗАД К СПИСКУ</button>
+</div>
+
+<div id="p2" class="page">
+    <h1>СБОРБАНК</h1>
+    <div class="premium-card">
+        <div class="chip"></div><span class="section-title">Зарплатная карта</span>
+        <input type="text" id="cash" class="bank-input" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+    </div>
+    <div class="card">
+        <span class="section-title">НАКОПИТЕЛЬНЫЙ СЧЕТ</span>
+        <input type="text" id="savings" class="bank-input" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+    </div>
+    <div class="card">
+        <span class="section-title">АКТИВНЫЕ ВКЛАДЫ</span>
+        <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-weight:bold; font-size:14px;">ВКЛАД #1</span>
+                <select id="depT1" class="small-select" onchange="storeData()"><option>Онлайн</option><option>Оффлайн</option></select>
+            </div>
+            <input type="text" id="depV1" class="bank-input" style="font-size:18px !important;" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-weight:bold; font-size:14px;">ВКЛАД #2</span>
+                <select id="depT2" class="small-select" onchange="storeData()"><option>Онлайн</option><option>Оффлайн</option></select>
+            </div>
+            <input type="text" id="depV2" class="bank-input" style="font-size:18px !important;" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+    </div>
+</div>
+
+<div id="p3" class="page">
+    <h1>ИМУЩЕСТВО</h1>
+    <div class="main-location">
+        <div class="main-location-sub">ОСНОВНОЙ АДРЕС ДИСЛОКАЦИИ</div>
+        <h2 class="main-location-title">Воинская часть № 12132</h2>
+        <div style="font-size: 12px; color: var(--accent); margin-top: 5px;">★★★★★</div>
+    </div>
+    <div class="card"><h2>🏠 Жилье</h2><div id="l-homes"></div><button class="btn-main" onclick="addNew('homes')">+ Добавить</button></div>
+    <div class="card"><h2>🚗 Авто</h2><div id="l-autos"></div><button class="btn-main" onclick="addNew('autos')">+ Добавить</button></div>
+    <div class="card"><h2>💼 Бизнес</h2><div id="l-biz"></div><button class="btn-main" onclick="addNew('biz')">+ Добавить</button></div>
+</div>
+
+<div id="p4" class="page">
+    <h1>НАВИГАЦИЯ И ПЛАНЫ</h1>
+    <div id="maps-list"></div>
+    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+    <h2 style="font-size: 14px; color: var(--accent); margin-bottom: 10px; text-transform: uppercase;">📋 Планы объектов</h2>
+    <div class="card" style="display: flex; flex-direction: column; gap: 15px;">
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №1</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan1.png?raw=true" style="width:100%; border-radius:12px;" alt="План 1"></div>
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №2</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan2.png?raw=true" style="width:100%; border-radius:12px;" alt="План 2"></div>
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №3</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan3.png?raw=true" style="width:100%; border-radius:12px;" alt="План 3"></div>
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №4</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan4.png?raw=true" style="width:100%; border-radius:12px;" alt="План 4"></div>
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №5</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan5.png?raw=true" style="width:100%; border-radius:12px;" alt="План 5"></div>
+        <div><div style="font-size: 10px; color: var(--gray); margin-bottom: 5px;">ПЛАН №6</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan6.png?raw=true" style="width:100%; border-radius:12px;" alt="План 6"></div>
+    </div>
+    <h2 style="font-size: 14px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; text-transform: uppercase;">⚔️ Расположение налётов</h2>
+    <div class="card"><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/naleti.png?raw=true" style="width:100%; border-radius:12px;" alt="Карта налётов"></div>
+    <h2 style="font-size: 14px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; text-transform: uppercase;">🏢 Расположение ЖК</h2>
+    <div class="card"><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/GK.png?raw=true" style="width:100%; border-radius:12px;" alt="Карта ЖК"></div>
+</div>
+
+<div id="p5" class="page">
+    <h1>ЛЕКТОРИЙ</h1>
+    <div class="card">
+        <input type="text" id="lec-t" placeholder="Тема лекции" style="font-weight:bold;">
+        <textarea id="lec-b" placeholder="Текст лекции..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <label class="btn-main btn-secondary" style="flex:1;">
+                📎 ФОТО
+                <input type="file" id="lec-f" style="display:none;" onchange="previewFile('lec')">
+            </label>
+            <button class="btn-main" onclick="saveItem('lecs')" style="flex:2;">СОХРАНИТЬ</button>
+        </div>
+        <div id="lec-preview" style="display:none; margin-top:10px; color:var(--accent); font-size:10px;">Файл выбран</div>
+    </div>
+    <div id="l-lecs"></div>
+    <button class="btn-main btn-secondary" onclick="nav(1)">НАЗАД</button>
+</div>
+
+<div id="p6" class="page">
+    <h1>ЗАКОНЫ</h1>
+    <div class="card">
+        <input type="text" id="law-t" placeholder="Название статьи" style="font-weight:bold;">
+        <textarea id="law-b" placeholder="Текст закона..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <label class="btn-main btn-secondary" style="flex:1;">
+                📎 ФОТО
+                <input type="file" id="law-f" style="display:none;" onchange="previewFile('law')">
+            </label>
+            <button class="btn-main" onclick="saveItem('laws')" style="flex:2;">СОХРАНИТЬ</button>
+        </div>
+        <div id="law-preview" style="display:none; margin-top:10px; color:var(--accent); font-size:10px;">Файл выбран</div>
+    </div>
+    <div id="l-laws"></div>
+    <button class="btn-main btn-secondary" onclick="nav(1)">НАЗАД</button>
+</div>
+
+<div id="p7" class="page">
+    <h1>ТАЙМЕР</h1>
+    <div class="card">
+        <div id="t-val" style="font-size:80px; text-align:center; margin:30px 0; color:var(--accent); font-family:monospace; font-weight:bold;">00:00</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(10)">10 МИН</button>
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(20)">20 МИН</button>
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(30)">30 МИН</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <button class="btn-main" style="margin:0;" onclick="startTimer()">СТАРТ</button>
+            <button class="btn-main" style="margin:0;" onclick="stopTimer()">ПАУЗА</button>
+        </div>
+        <button class="btn-main btn-secondary" style="margin:0; color:var(--red); border: 1px solid var(--red);" onclick="resetTimer()">СБРОСИТЬ</button>
+    </div>
+    <button class="btn-main btn-secondary" style="margin-top:20px;" onclick="nav(1)">НАЗАД В ПРОФИЛЬ</button>
+</div>
+
+<div id="p8" class="page">
+    <h1>ТЮРЕМНЫЙ СРОК</h1>
+    <div class="card">
+        <span class="section-title">Тип заключения</span>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="typePrison" class="btn-main" onclick="setPrisonType('ТЮРЬМА')" style="flex:1; background: var(--accent) !important; color: #000 !important; font-weight:900;">ТЮРЬМА</button>
+            <button id="typeDemorgan" class="btn-main" onclick="setPrisonType('ДЕМОРГАН')" style="flex:1; opacity: 0.6; font-weight:900;">ДЕМОРГАН</button>
+        </div>
+        <span class="section-title">Установка срока</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <input type="number" id="timeValue" placeholder="Кол-во" class="timer-input-fix">
+            <select id="timeUnit" class="btn-main" style="height: 54px; font-size: 14px; margin-bottom:0; background: #1a221a !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important;">
+                <option value="1">Минуты</option>
+                <option value="60">Часы</option>
+                <option value="1440">Дни</option>
+            </select>
+        </div>
+        <button class="btn-main" id="startPrisonTimer" onclick="startPrisonTimer()" style="background: #ff3b30 !important; color: #fff !important; border: none !important; margin-top:10px; font-weight: 900; box-shadow: 0 0 15px rgba(255,59,48,0.3);">ЗАПУСТИТЬ ТАЙМЕР</button>
+    </div>
+    <div id="timerDisplay" class="card" style="display: none; text-align: center; border: 2px solid #ff3b30 !important; background: rgba(255, 59, 48, 0.05) !important; margin-top: 20px;">
+        <div id="prisonStatusTitle" style="color: #ff3b30; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; font-size: 12px;">ЗАКЛЮЧЕНИЕ: ТЮРЬМА</div>
+        <div id="prisonCountdown" style="font-size: 42px; font-family: 'Courier New', monospace; font-weight: 900; margin: 15px 0; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2);">00:00:00</div>
+        <button class="btn-main" onclick="stopPrisonTimer()" style="background: rgba(255,255,255,0.1) !important; font-size: 12px; height: 40px;">СБРОСИТЬ</button>
+    </div>
+</div>
+<div id="p9" class="page">
+    <h1>ПОСТАВКИ ВС РФ</h1>
+    <div class="card">
+        <h2 style="color:var(--accent); font-size:12px; text-align:center; margin-bottom:15px; opacity:0.7;">КОНТРОЛЬ ОТКАТА ПОСТАВОК (4 ЧАСА)</h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(79,121,66,0.2); padding:15px; border-radius:12px; text-align:center;">
+                <div style="font-size:20px; color:var(--gray); margin-bottom:5px;">РЛС ОРБИТА</div>
+                <div id="timer-orbita" style="font-size:18px; font-family:monospace; color:var(--accent); margin-bottom:10px;">ГОТОВ</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-main" style="flex:3; height:40px; font-size:10px;" onclick="startSupply('orbita')">ВЫЕЗД</button>
+                    <button class="btn-main" style="flex:1; height:40px; background:var(--red) !important; border-color:var(--red) !important; color:#fff !important;" onclick="resetSupply('orbita')">❌</button>
+                </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(79,121,66,0.2); padding:15px; border-radius:12px; text-align:center;">
+                <div style="font-size:20px; color:var(--gray); margin-bottom:5px;">ОБЪЕКТ N7</div>
+                <div id="timer-n7" style="font-size:18px; font-family:monospace; color:var(--accent); margin-bottom:10px;">ГОТОВ</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-main" style="flex:3; height:40px; font-size:10px;" onclick="startSupply('n7')">ВЫЕЗД</button>
+                    <button class="btn-main" style="flex:1; height:40px; background:var(--red) !important; border-color:var(--red) !important; color:#fff !important;" onclick="resetSupply('n7')">❌</button>
+                </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(79,121,66,0.2); padding:15px; border-radius:12px; text-align:center;">
+                <div style="font-size:20px; color:var(--gray); margin-bottom:5px;">ВОЕННЫЕ СКЛАДЫ</div>
+                <div id="timer-sklad" style="font-size:18px; font-family:monospace; color:var(--accent); margin-bottom:10px;">ГОТОВ</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-main" style="flex:3; height:40px; font-size:10px;" onclick="startSupply('sklad')">ВЫЕЗД</button>
+                    <button class="btn-main" style="flex:1; height:40px; background:var(--red) !important; border-color:var(--red) !important; color:#fff !important;" onclick="resetSupply('sklad')">❌</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<nav class="nav" id="bottom-nav">
+    <div class="nav-item active" id="n1" onclick="nav(1)"><span>👤</span>Профиль</div>
+    <div class="nav-item" id="n2" onclick="nav(2)"><span>💳</span>Банк</div>
+    <div class="nav-item" id="n3" onclick="nav(3)"><span>🏘️</span>База</div>
+    <div class="nav-item" id="n4" onclick="nav(4)"><span>📍</span>Карты</div>
+</nav>
+
+<div class="modal-overlay" id="rankOverlay" onclick="closeModal('rank')"></div>
+<div class="modal-bottom" id="rankModal">
+    <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ВЫБЕРИТЕ ЗВАНИЕ</h2>
+    <div id="rank-list"></div>
+</div>
+
+<div class="modal-overlay" id="unitOverlay" onclick="closeModal('unit')"></div>
+<div class="modal-bottom" id="unitModal">
+    <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ПОДРАЗДЕЛЕНИЕ</h2>
+    <div id="unit-list"></div>
+</div>
+
+<script>
+    // --- ДАННЫЕ ОБЪЕКТОВ ---
+    const objectDetails = {
+        cgb: { title: "Поставки от ЦГБ 3 (ЦГБ 7)", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/cgb3and7.png?raw=true", desc: "Подробное описание маршрута, регламент сопровождения медикаментов и ключевые точки охраны." },
+        fso: { title: "Поставки от ФСО", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/FSO.png?raw=true", desc: "Протоколы взаимодействия с Федеральной Службой Охраны. Точки передачи груза и зоны ответственности." },
+        vsrf: { title: "Поставки от ВС РФ", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/VSRF.png?raw=true", desc: "Внутренние логистические маршруты армии. График снабжения складов и дежурные подразделения." },
+        kraz: { title: "Война за КрАЗ", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/Kraz.png?raw=true", }
+    };
+
+    function openInfo(type) {
+        const data = objectDetails[type];
+        const container = document.getElementById('infoData');
+        container.innerHTML = `<h2>${data.title}</h2><img src="${data.img}" alt="${data.title}" onerror="this.src='https://via.placeholder.com/600x300?text=Загрузите+карту+на+GitHub'"><p>${data.desc || ''}</p>`;
+        document.getElementById('infoOverlay').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+    function closeInfo() { document.getElementById('infoOverlay').style.display = 'none'; }
+
+    // --- ОСНОВНЫЕ ФУНКЦИИ ---
+    const audio = document.getElementById('bgMusic');
+    let db, tSec = 0, tInt = null;
+
+    function startApp() {
+    // Твой код запуска...
+    const music = document.getElementById('bgMusic');
+    if (music) music.play().catch(()=>{});
+    
+    document.getElementById('header-ui').style.display = 'block';
+    document.getElementById('bottom-nav').style.display = 'flex';
+    nav(1);
+
+        // Создаем элемент
+    const toast = document.createElement('div');
+    toast.className = 'system-toast';
+    
+    // Вставляем контент с "армейской" разметкой
+    toast.innerHTML = `
+        <div class="system-toast-content">
+            <div style="font-size: 10px; margin-bottom: 15px; opacity: 0.6;">[ SYSTEM NOTIFICATION ]</div>
+            <div style="font-size: 22px; font-weight: bold; margin-bottom: 10px;">ВНИМАНИЕ</div>
+            <div style="height: 1px; background: var(--accent); margin: 15px 0; opacity: 0.3;"></div>
+            <div style="font-size: 20px; color: #fff;">СВАЙП СПРАВА ДЛЯ ВЫЗОВА МЕНЮ </div>
+            <div style="font-size: 30px; margin-top: 15px;">» » » » »</div>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+
+    // Удаление через 4 секунды (с эффектом растворения)
+    setTimeout(() => {
+        toast.style.transition = "all 0.8s ease";
+        toast.style.opacity = "0";
+        toast.style.filter = "blur(10px)"; // Эффект распада пикселей
+        setTimeout(() => toast.remove(), 800);
+    }, 4000);
+}
+
+    function toggleMusicManual(e) { e.stopPropagation(); if (audio.paused) audio.play(); else audio.pause(); updateMusicBtn(); }
+    function updateMusicBtn() { document.getElementById('music-btn').innerText = audio.paused ? "🔇" : "🔊"; }
+
+    function formatRubles(input) {
+        let cursor = input.selectionStart, oldLen = input.value.length;
+        let raw = input.value.replace(/\D/g, "");
+        if (!raw) { input.value = ""; return; }
+        let formatted = new Intl.NumberFormat('ru-RU').format(raw) + " ₽";
+        input.value = formatted;
+        let finalPos = Math.max(0, Math.min(cursor + (formatted.length - oldLen), formatted.length - 2));
+        input.setSelectionRange(finalPos, finalPos);
+    }
+
+    const request = indexedDB.open("GtaRpDB_VS_RF", 2); 
+    request.onupgradeneeded = e => { e.target.result.createObjectStore("files", {keyPath:"id"}); };
+    request.onsuccess = e => { db = e.target.result; loadAll(); };
+
+    function nav(n) { 
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); 
+    const targetPage = document.getElementById('p' + n);
+    if (targetPage) targetPage.classList.add('active-page');
+    
+    // --- СМЕНА ЦВЕТА НА ОРАНЖЕВЫЙ ---
+    if (n === 8) {
+        document.body.classList.add('prison-mode');
+    } else {
+        document.body.classList.remove('prison-mode');
+    }
+    // -------------------------------
+
+    const navBar = document.getElementById('bottom-nav');
+    if (navBar) navBar.style.display = (n === 0) ? 'none' : 'flex';
+    const headerUi = document.getElementById('header-ui');
+    if (headerUi) headerUi.style.display = (n === 0) ? 'none' : 'flex';
+    
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    
+    // Подсветка иконок (твоя логика n > 0 && n < 5)
+    if(n > 0 && n < 5) { 
+        const activeIcon = document.getElementById('n' + n); 
+        if (activeIcon) activeIcon.classList.add('active'); 
+    }
+    // Добавляем подсветку для иконки тюрьмы (если она n8)
+    if(n === 8) {
+        const activeIcon = document.getElementById('n8');
+        if (activeIcon) activeIcon.classList.add('active');
+    }
+
+    window.scrollTo(0, 0); 
+}
+
+    function storeData() {
+    const data = {
+        callsign: document.getElementById('callsign').value, // Позывной
+        surname: document.getElementById('surname').value,   // Фамилия
+        name: document.getElementById('name').value,         // Имя
+        patronymic: document.getElementById('patronymic').value, // Отчество
+        static: document.getElementById('static').value,
+        notes: document.getElementById('notes').value,
+        cash: document.getElementById('cash')?.value || '',
+        savings: document.getElementById('savings')?.value || '',
+        depV1: document.getElementById('depV1')?.value || '',
+        depV2: document.getElementById('depV2')?.value || '',
+        depT1: document.getElementById('depT1')?.value || '',
+        depT2: document.getElementById('depT2')?.value || '',
+        rank: document.getElementById('rank-display').innerText,
+        unit: document.getElementById('unit-display').innerText
+    };
+    localStorage.setItem('rp_data_vsrf_v78', JSON.stringify(data));
+}
+    function getAssetData(id) { return Array.from(document.querySelectorAll(`#${id} .asset-row`)).map(r => ({n: r.querySelector('.in-name').value, p: r.querySelector('.in-price').value})); }
+
+    function loadAll() {
+        const d = JSON.parse(localStorage.getItem('rp_data_vsrf_v78') || '{}');
+        document.getElementById('name').value = d.name || '';
+        document.getElementById('static').value = d.static || '';
+        document.getElementById('notes').value = d.notes || '';
+        document.getElementById('cash').value = d.cash || '';
+        document.getElementById('savings').value = d.savings || '';
+        if(d.depT1) document.getElementById('depT1').value = d.depT1;
+        if(d.depV1) document.getElementById('depV1').value = d.depV1;
+        if(d.depT2) document.getElementById('depT2').value = d.depT2;
+        if(d.depV2) document.getElementById('depV2').value = d.depV2;
+        window.currentRank = d.rank || ''; document.getElementById('rank-display').innerText = d.rank || "Звание";
+        window.currentUnit = d.unit || ''; document.getElementById('unit-display').innerText = d.unit || "Подразделение";
+        ['homes','autos','biz'].forEach(t => { document.getElementById('l-'+t).innerHTML = ''; if(d[t]) d[t].forEach(v => addNew(t, v.n, v.p)); });
+        renderList('lecs'); renderList('laws'); renderFiles();
+        
+        // Восстановление фонового таймера тюрьмы
+        checkPrisonTimer();
+    }
+    
+    function addNew(t, n='', p='') {
+        const div = document.createElement('div'); div.className="asset-row"; div.style="display:grid; grid-template-columns: 1fr 1fr 40px; gap:8px; margin-bottom:10px;";
+        div.innerHTML = `<input type="text" class="in-name" value="${n}" placeholder="Назв."><input type="text" class="in-price" value="${p}" placeholder="₽" oninput="formatRubles(this);storeData()"><button class="del-btn" onclick="this.parentElement.remove();storeData()">✕</button>`;
+        document.getElementById('l-'+t).appendChild(div);
+    }
+    
+    function previewFile(type) { document.getElementById(type+'-preview').style.display = 'block'; }
+
+    function saveItem(type) {
+        const key = type === 'lecs' ? 'rp_v_lecs' : 'rp_v_laws';
+        const prefix = type === 'lecs' ? 'lec' : 'law';
+        const t = document.getElementById(prefix+'-t').value;
+        const b = document.getElementById(prefix+'-b').value;
+        const fileInput = document.getElementById(prefix+'-f');
+        if(!t || !b) return alert("Заполните тему и текст!");
+        const newItemId = Date.now();
+        let items = JSON.parse(localStorage.getItem(key) || '[]');
+        items.push({id: newItemId, t, b});
+        localStorage.setItem(key, JSON.stringify(items));
+        if (fileInput.files.length > 0) {
+            const f = fileInput.files[0];
+            const r = new FileReader();
+            r.onload = e => {
+                db.transaction("files", "readwrite").objectStore("files").put({id: prefix + '_img_' + newItemId, data: e.target.result}).oncomplete = () => { renderList(type); };
+            };
+            r.readAsDataURL(f);
+        } else { renderList(type); }
+        document.getElementById(prefix+'-t').value = '';
+        document.getElementById(prefix+'-b').value = '';
+        fileInput.value = '';
+        document.getElementById(prefix+'-preview').style.display = 'none';
+    }
+
+    function renderList(type) {
+        const key = type === 'lecs' ? 'rp_v_lecs' : 'rp_v_laws';
+        const prefix = type === 'lecs' ? 'lec' : 'law';
+        const items = JSON.parse(localStorage.getItem(key) || '[]');
+        const cont = document.getElementById(type==='lecs'?'l-lecs':'l-laws'); 
+        cont.innerHTML = '';
+        items.reverse().forEach(i => {
+            const d = document.createElement('div'); d.className="card";
+            const imgId = prefix + '_img_' + i.id;
+            d.innerHTML = `<b>${i.t}</b><div class="lecture-box" onclick="navigator.clipboard.writeText(this.innerText);alert('Скопировано!')" style="white-space: pre-wrap; margin:10px 0; font-size:14px; line-height:1.4;">${i.b}</div>
+            <div id="img-${imgId}" style="margin-bottom:10px;"></div>
+            <button class="btn-main btn-secondary" style="color:var(--red)" onclick="delItem('${type}', ${i.id})">УДАЛИТЬ</button>`;
+            cont.appendChild(d);
+            if(db) {
+                db.transaction("files").objectStore("files").get(imgId).onsuccess = e => {
+                    if (e.target.result) { document.getElementById('img-'+imgId).innerHTML = `<img src="${e.target.result.data}" style="width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.2);">`; }
+                };
+            }
+        });
+    }
+
+    function delItem(type, id) { 
+        if(confirm("Удалить запись?")) { 
+            const key = type === 'lecs' ? 'rp_v_lecs' : 'rp_v_laws'; 
+            const prefix = type === 'lecs' ? 'lec' : 'law';
+            let items = JSON.parse(localStorage.getItem(key)).filter(x => x.id !== id); 
+            localStorage.setItem(key, JSON.stringify(items)); 
+            db.transaction("files", "readwrite").objectStore("files").delete(prefix + '_img_' + id);
+            renderList(type); 
+        } 
+    }
+
+    function storeImg(i, t, list=false) {
+        const f = i.files[0]; if(!f) return;
+        const r = new FileReader(); r.onload = e => { db.transaction("files", "readwrite").objectStore("files").put({id: list?t+Date.now():t, data: e.target.result}).oncomplete = () => loadAll(); }; r.readAsDataURL(f);
+    }
+    
+    function renderFiles() {
+        if(!db) return;
+        db.transaction("files").objectStore("files").getAll().onsuccess = e => {
+            document.getElementById('maps-list').innerHTML = '';
+            e.target.result.forEach(f => {
+                if(f.id==='avatar') { document.getElementById('view-ava').src=f.data; document.getElementById('view-ava').style.display='block'; document.getElementById('label-ava').style.display='none'; }
+                if(f.id.startsWith('maps')) {
+                    const div = document.createElement('div'); div.className = "card";
+                    div.innerHTML = `<img src="${f.data}" style="width:100%; border-radius:12px; margin-bottom:10px;"><button class="btn-main btn-secondary" style="color:var(--red)" onclick="delFile('${f.id}')">УДАЛИТЬ КАРТУ</button>`;
+                    document.getElementById('maps-list').appendChild(div);
+                }
+            });
+        };
+    }
+    function delFile(id) { if(confirm("Удалить?")) db.transaction("files", "readwrite").objectStore("files").delete(id).onsuccess = () => loadAll(); }
+    
+    // --- ЗАПОЛНЕНИЕ СПИСКОВ (ЗВАНИЯ/ПОДРАЗДЕЛЕНИЯ) ---
+    function fillSelections() {
+        const ranks = ['Рядовой','Ефрейтор','Младший сержант','Сержант','Старший сержант','Старшина','Прапорщик','Старший прапорщик','Младший лейтенант','Лейтенант','Старший лейтенант','Капитан','Майор','Подполковник','Полковник','Генерал-майор','Генерал-лейтенант','Генерал-полковник','Генерал армии'];
+        const rCont = document.getElementById('rank-list'); rCont.innerHTML = '';
+        ranks.forEach(r => { 
+            const d = document.createElement('div'); 
+            d.className="opt-item"; 
+            d.innerText=r; 
+            d.onclick=() => { window.currentRank=r; document.getElementById('rank-display').innerText=r; storeData(); closeModal('rank'); }; 
+            rCont.appendChild(d); 
+        });
+        
+        const units = ['Рота Охраны и Обеспечения', 'Силы Специальных Операций', 'Военный Комиссариат', 'Управление Военной Полиции', 'Военная Академия'];
+        const uCont = document.getElementById('unit-list'); uCont.innerHTML = '';
+        units.forEach(u => { 
+            const d = document.createElement('div'); 
+            d.className="opt-item"; 
+            d.innerText=u; 
+            d.onclick=() => { window.currentUnit=u; document.getElementById('unit-display').innerText=u; storeData(); closeModal('unit'); }; 
+            uCont.appendChild(d); 
+        });
+    }
+    function openModal(id) { document.getElementById(id+'Overlay').style.display='block'; setTimeout(() => document.getElementById(id+'Modal').classList.add('show'), 10); }
+    function closeModal(id) { document.getElementById(id+'Modal').classList.remove('show'); setTimeout(() => document.getElementById(id+'Overlay').style.display='none', 400); }
+
+    // --- ОБЫЧНЫЙ ТАЙМЕР (P7) ---
+    function setTimer(min) { stopTimer(); tSec = min * 60; updateTimerDisplay(); }
+    function startTimer() { if (tInt || tSec <= 0) return; tInt = setInterval(() => { tSec--; updateTimerDisplay(); if (tSec <= 0) { stopTimer(); alert("ВРЕМЯ ВЫШЛО!"); } }, 1000); }
+    function stopTimer() { clearInterval(tInt); tInt = null; }
+    function resetTimer() { stopTimer(); tSec = 0; updateTimerDisplay(); }
+    function updateTimerDisplay() { let m = Math.floor(tSec / 60); let s = tSec % 60; const display = document.getElementById('t-val'); if (display) display.innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`; }
+
+    // --- ЧАСЫ В ШАПКЕ ---
+    setInterval(() => { const clockEl = document.getElementById('clock'); if (clockEl) clockEl.innerText = new Date().toLocaleTimeString(); }, 1000);
+
+    // --- СВАЙПЫ ---
+    let touchStartX = 0, touchEndX = 0;
+    function toggleSideMenu(isOpen) { const panel = document.getElementById('sidePanel'); const overlay = document.getElementById('sideOverlay'); if (isOpen) { panel.classList.add('open'); overlay.style.display = 'block'; } else { panel.classList.remove('open'); overlay.style.display = 'none'; } }
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    document.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); }, false);
+    function handleSwipe() { const swipeDistance = touchStartX - touchEndX; if (swipeDistance > 100 && touchStartX > window.innerWidth - 50) toggleSideMenu(true); if (swipeDistance < -100) toggleSideMenu(false); }
+
+    // --- КАЛЕНДАРЬ ---
+    let currentViewDate = new Date(2026, 0, 1);
+    const notesKey = 'rp_calendar_notes_v1';
+    function openCalendar() { toggleSideMenu(false); document.getElementById('calOverlay').style.display = 'block'; setTimeout(() => document.getElementById('calModal').classList.add('show'), 10); renderCalendar(); }
+    function closeCalendar() { document.getElementById('calModal').classList.remove('show'); setTimeout(() => document.getElementById('calOverlay').style.display = 'none', 300); }
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const label = document.getElementById('monthLabel');
+        grid.innerHTML = '';
+        const year = currentViewDate.getFullYear(), month = currentViewDate.getMonth();
+        const months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        label.innerText = `${months[month]} ${year}`;
+        ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].forEach(d => grid.innerHTML += `<div class="day-name">${d}</div>`);
+        const firstDay = new Date(year, month, 1).getDay();
+        const shift = firstDay === 0 ? 6 : firstDay - 1;
+        for (let i = 0; i < shift; i++) grid.innerHTML += `<div></div>`;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const notes = JSON.parse(localStorage.getItem(notesKey) || '{}');
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${month + 1}-${d}`;
+            const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+            const hasNote = notes[dateStr] ? 'has-note' : '';
+            grid.innerHTML += `<div class="day-cell ${isToday?'today':''} ${hasNote}" onclick="editDayNote('${dateStr}')">${d}</div>`;
+        }
+    }
+    function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
+    function editDayNote(dateStr) {
+        let notes = JSON.parse(localStorage.getItem(notesKey) || '{}');
+        let newNote = prompt(`Событие на ${dateStr}:`, notes[dateStr] || "");
+        if (newNote === null) return;
+        if (newNote === "") delete notes[dateStr]; else notes[dateStr] = newNote;
+        localStorage.setItem(notesKey, JSON.stringify(notes));
+        renderCalendar();
+    }
+
+    // --- ЗВУК КЛИКА ---
+    const clickSound = new Audio('click.mp3'); clickSound.preload = 'auto';
+    function playClick() { clickSound.currentTime = 0; let playPromise = clickSound.play(); if (playPromise !== undefined) { playPromise.catch(error => console.log("Sound wait")); } }
+    document.addEventListener('touchstart', function(e) { const btn = e.target.closest('.btn-main, .object-item, .nav-item, button, .opt-item'); if (btn) playClick(); }, {passive: true});
+    document.addEventListener('mousedown', function(e) { const btn = e.target.closest('.btn-main, .object-item, .nav-item, button, .opt-item'); if (btn) playClick(); });
+
+    // --- ФОНОВЫЙ ТАЙМЕР ТЮРЬМЫ (С УВЕДОМЛЕНИЯМИ) ---
+    let prisonInterval;
+    let selectedType = 'ТЮРЬМА';
+
+    function setPrisonType(type) {
+        selectedType = type;
+        const isPrison = type === 'ТЮРЬМА';
+        
+        const pBtn = document.getElementById('typePrison');
+        const dBtn = document.getElementById('typeDemorgan');
+        
+        pBtn.style.opacity = isPrison ? '1' : '0.4';
+        pBtn.style.background = isPrison ? 'var(--accent)' : '#1a221a';
+        pBtn.style.color = isPrison ? '#000' : 'var(--accent)';
+        
+        dBtn.style.opacity = isPrison ? '0.4' : '1';
+        dBtn.style.background = isPrison ? '#1a221a' : 'var(--accent)';
+        dBtn.style.color = isPrison ? 'var(--accent)' : '#000';
+    }
+
+    function startPrisonTimer() {
+        const val = parseInt(document.getElementById('timeValue').value);
+        const unit = parseInt(document.getElementById('timeUnit').value);
+        if (!val || val <= 0) return alert("Укажите время!");
+
+        // Расчет времени окончания (Timestamp)
+        const durationMs = val * unit * 60 * 1000;
+        const endTime = Date.now() + durationMs;
+        
+        localStorage.setItem('rp_prison_end_v2', endTime);
+        localStorage.setItem('rp_prison_type_v2', selectedType);
+
+        updatePrisonUI(true);
+        runPrisonTicker();
+    }
+
+    function checkPrisonTimer() {
+        const endTime = parseInt(localStorage.getItem('rp_prison_end_v2'));
+        if (endTime && endTime > Date.now()) {
+            selectedType = localStorage.getItem('rp_prison_type_v2') || 'ТЮРЬМА';
+            updatePrisonUI(true);
+            runPrisonTicker();
+        }
+    }
+
+    function runPrisonTicker() {
+        if (prisonInterval) clearInterval(prisonInterval);
+        
+        prisonInterval = setInterval(() => {
+            const endTime = parseInt(localStorage.getItem('rp_prison_end_v2'));
+            if (!endTime) return clearInterval(prisonInterval);
+
+            const remaining = endTime - Date.now();
+            
+            if (remaining <= 0) {
+                clearInterval(prisonInterval);
+                finishPrisonTimer();
+                return;
+            }
+
+            // Форматирование
+            const totalSeconds = Math.floor(remaining / 1000);
+            const d = Math.floor(totalSeconds / 86400);
+            const h = Math.floor((totalSeconds % 86400) / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            
+            let display = d > 0 ? d + "д " : "";
+            display += `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            
+            const el = document.getElementById('prisonCountdown');
+            if(el) el.innerText = display;
+            
+        }, 1000);
+    }
+
+    function finishPrisonTimer() {
+        document.getElementById('prisonCountdown').innerText = "СРОК ОКОНЧЕН";
+        localStorage.removeItem('rp_prison_end_v2');
+        
+        alert(`Срок (${localStorage.getItem('rp_prison_type_v2')}) истек!`);
+    }
+
+    function stopPrisonTimer() {
+        if(confirm("Сбросить таймер?")) {
+            clearInterval(prisonInterval);
+            localStorage.removeItem('rp_prison_end_v2');
+            localStorage.removeItem('rp_prison_type_v2');
+            updatePrisonUI(false);
+        }
+    }
+
+    function updatePrisonUI(active) {
+        document.getElementById('timerDisplay').style.display = active ? 'block' : 'none';
+        if(active) document.getElementById('prisonStatusTitle').innerText = `ЗАКЛЮЧЕНИЕ: ${selectedType}`;
+        else document.getElementById('timeValue').value = '';
+    }
+
+    // Инициализация списков сразу при загрузке скрипта
+    fillSelections();
+// Ключи для сохранения в памяти
+const supplyKeys = { orbita: 'cd_orbita_v1', n7: 'cd_n7_v1', sklad: 'cd_sklad_v1' };
+
+function startSupply(id) {
+    // 4 часа = 14,400,000 миллисекунд
+    const readyAt = Date.now() + (4 * 60 * 60 * 1000);
+    localStorage.setItem(supplyKeys[id], readyAt);
+    updateSupplyTimers();
+}
+
+function resetSupply(id) {
+    if(confirm("Сбросить таймер для этой точки?")) {
+        localStorage.removeItem(supplyKeys[id]);
+        updateSupplyTimers();
+    }
+}
+
+function updateSupplyTimers() {
+    const now = Date.now();
+    Object.keys(supplyKeys).forEach(id => {
+        const readyAt = localStorage.getItem(supplyKeys[id]);
+        const el = document.getElementById(`timer-${id}`);
+        if (!el) return;
+
+        if (!readyAt) {
+            el.innerText = "ГОТОВ";
+            el.className = "supply-timer timer-ready"; // Включаем зеленую пульсацию
+            return;
+        }
+
+        const diff = readyAt - now;
+        if (diff <= 0) {
+            el.innerText = "ГОТОВ";
+            el.className = "supply-timer timer-ready"; // Включаем зеленую пульсацию
+        } else {
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            el.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            el.className = "supply-timer timer-active"; // Включаем красную пульсацию
+        }
+    });
+}
+
+// Запуск обновления каждую секунду и при загрузке
+setInterval(updateSupplyTimers, 1000);
+window.addEventListener('load', updateSupplyTimers);
+setInterval(() => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ru-RU', { hour12: false }) + " MSK";
+    const clockEl = document.getElementById('system-clock');
+    if(clockEl) clockEl.innerText = timeStr;
+}, 1000);
+</script>
+</body>
+</html>
