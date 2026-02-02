@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>RP Manager Elite v10.1 Fix</title>
+    <style>
+        /* --- ПЕРЕМЕННЫЕ И БАЗОВЫЕ СТИЛИ --- */
+        :root {
+            --bg: #0d0f0a; 
+            --card: rgba(20, 25, 18, 0.95); 
+            --accent: #4f7942; 
+            --text: #fff; 
+            --gray: #8e8e93; 
+            --red: #ff3b30;
+            --orange: #ff8c00;
+        }
+
+        body.prison-mode {
+            --accent: var(--orange);
+        }
+
+        #p8 .card {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.1);
+        }
+
+        #p8 h1, #p8 h2 {
+            color: var(--orange);
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; user-select: none; }
+
+        /* --- ГЛАВНЫЙ ЭКРАН (P0) --- */
+        #p0 { background-color: #050604 !important; position: relative !important; overflow: hidden !important; min-height: 100vh !important; }
+        .scanner-grid { position: absolute !important; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(79, 121, 66, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(79, 121, 66, 0.15) 1px, transparent 1px) !important; background-size: 30px 30px !important; z-index: 1 !important; pointer-events: none; }
+        .scan-line { position: absolute !important; width: 200% !important; left: -50% !important; z-index: 3 !important; pointer-events: none; }
+        .line-1 { height: 2px; background: rgba(79, 121, 66, 0.8) !important; box-shadow: 0 0 20px #4f7942 !important; animation: scanMove 4s linear infinite; }
+        .line-2 { height: 120px; background: linear-gradient(to bottom, transparent, rgba(79, 121, 66, 0.1), transparent) !important; animation: scanMove 7s linear infinite reverse; }
+        @keyframes scanMove { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
+        .tactic-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
+        .tactic-main-line { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .tactic-text { font-size: 11px; font-weight: 900; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
+        .tactic-bracket { color: var(--accent); opacity: 0.4; font-weight: 200; font-size: 24px; font-family: monospace; }
+        .tactic-sub-code { font-family: 'Courier New', monospace; font-size: 8px; color: var(--gray); letter-spacing: 1px; opacity: 0.5; margin-top: 8px; text-transform: uppercase; }
+        .fade-in-top { animation: fadeInDown 1.5s ease-out forwards; opacity: 0; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 0.7; transform: translateY(0); } }
+
+        /* --- ИНТЕРФЕЙС И КНОПКИ --- */
+        .page { display: none; padding: 0 15px 120px; }
+        .active-page { display: block; }
+        .card { background: var(--card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.08); }
+        
+        .btn-main, .object-item { display: flex; align-items: center; justify-content: center; text-align: center; width: 100%; height: 54px; background: #1a221a !important; color: var(--accent) !important; border: 2px solid var(--accent) !important; border-radius: 12px; font-size: 11px !important; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); margin-bottom: 10px; padding: 0 10px; }
+        .btn-main:active, .object-item:active { background: var(--accent) !important; color: #000 !important; transform: scale(0.97); }
+        .btn-secondary { height: 50px; background: #0d0f0a !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; opacity: 0.8; }
+        
+        input, textarea, select { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; padding: 14px; width: 100%; margin-bottom: 10px; font-size: 15px; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        
+        .bank-input { font-family: 'Courier New', monospace !important; font-size: 24px !important; font-weight: bold; background: rgba(0,0,0,0.2) !important; text-align: center; color: #fff !important; }
+        
+        .timer-input-fix {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            font-size: 18px !important;
+            font-weight: bold;
+            background: rgba(255,255,255,0.08) !important;
+            border: 1px solid var(--accent) !important;
+            color: #fff !important;
+            text-align: center;
+        }
+
+        /* --- ШАПКА И НАВИГАЦИЯ --- */
+        #header-ui { display: none; }
+        .status-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: rgba(0, 0, 0, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 11px; letter-spacing: 1px; color: var(--gray); width: 100%; z-index: 500; }
+        
+        .nav { position: fixed; bottom: 0; width: 100%; background: #0d0f0a; border-top: 1px solid rgba(255,255,255,0.1); display: none; padding-bottom: env(safe-area-inset-bottom); z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 10px; color: var(--gray); font-weight: 600; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item span { display: block; font-size: 24px; margin-bottom: 3px; }
+
+        .side-panel { position: fixed; top: 0; right: 0; width: 280px; height: 100%; background: #0f120f; border-left: 2px solid var(--accent); z-index: 20000; transform: translateX(100%); transition: transform 0.3s ease-out; padding: 60px 20px 20px; box-shadow: -5px 0 25px rgba(0,0,0,0.9); }
+        .side-panel.open { transform: translateX(0); }
+        .overlay-shadow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 19999; display: none; }
+
+        /* --- ДОП ЭЛЕМЕНТЫ --- */
+        .section-title { font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; color: #fff; display: block; }
+        .avatar { width: 145px; height: 145px; border-radius: 50%; border: 4px solid var(--accent); margin: 10px auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1c1c1e; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #music-btn { position: fixed; top: 45px; right: 20px; width: 45px; height: 45px; background: rgba(20, 25, 18, 0.95); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+        /* --- МОДАЛКИ --- */
+        .cal-overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30000; display: none; }
+        
+        .modal-bottom { 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75%; 
+            background: #121212; 
+            border-top: 2px solid var(--accent);
+            border-top-left-radius: 25px; border-top-right-radius: 25px; 
+            z-index: 30001; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            padding: 25px; overflow-y: auto; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,1);
+        }
+        .modal-bottom.show { transform: translateY(0); }
+        
+        .opt-item { 
+            padding: 18px; 
+            background: #1e1e1e;
+            margin-bottom: 10px; border-radius: 12px; cursor: pointer; 
+            font-weight: 700; text-align: center; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            font-size: 15px; color: #fff;
+            display: block;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .opt-item:active { background: var(--accent); color: #000; }
+
+        .cal-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 350px; background: #121612; border: 2px solid var(--accent); border-radius: 20px; padding: 20px; transition: 0.3s; opacity: 0; }
+        .cal-modal.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-cell { padding: 10px 0; font-size: 13px; cursor: pointer; border-radius: 8px; color: #fff; position: relative; transition: 0.2s; }
+        .day-cell:hover { background: var(--accent); color: #000; }
+        .day-cell.today { border: 1px solid var(--accent); color: var(--accent); }
+        .day-cell.has-note::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--red); border-radius: 50%; }
+        .day-name { font-size: 10px; color: var(--gray); font-weight: 900; padding-bottom: 10px; }
+        
+        .info-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f140f; z-index: 35000; display: none; overflow-y: auto; padding: 20px; }
+        .info-content h2 { color: var(--accent); margin-top: 20px; text-transform: uppercase; font-size: 18px; }
+        .info-content p { color: #ccc; line-height: 1.6; font-size: 14px; margin-bottom: 15px; }
+        .info-content img { width: 100%; border-radius: 12px; border: 1px solid var(--accent); margin: 10px 0; }
+
+        .objects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .object-item { margin-bottom: 0; color: #ffffff !important; }
+        .main-location { background: linear-gradient(45deg, #1a2a16, #2d4526); border: 2px solid var(--accent); border-radius: 22px; padding: 30px 20px 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 0 20px rgba(79, 121, 66, 0.3); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        .main-location::before { content: "ГЛАВНЫЙ ШТАБ"; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 900; color: var(--accent); opacity: 0.8; letter-spacing: 2px; white-space: nowrap; }
+        .main-location-title { font-size: 22px; font-weight: 900; color: #fff; margin: 0; letter-spacing: 1px; }
+        .main-location-sub { font-size: 10px; color: var(--gray); text-transform: uppercase; margin-top: 5px; }
+        .premium-card { background: linear-gradient(135deg, #1a2a16 0%, #4f7942 100%); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        .chip { width: 45px; height: 35px; background: linear-gradient(135deg, #d4af37 0%, #f5e0a3 100%); border-radius: 8px; margin-bottom: 20px; }
+        .small-select { width: auto; height: 32px; padding: 0 8px; font-size: 12px; margin: 0; background: var(--accent); border: none; }
+        .del-btn { background: var(--red); color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+
+        /* Эффект свечения края */
+        .edge-hint {
+            position: fixed;
+            left: -15px;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: var(--accent);
+            filter: blur(20px);
+            opacity: 0.15;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* Системный лог (тост) */
+        .system-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 15, 10, 0.98);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 30px;
+            font-family: 'Courier New', monospace;
+            z-index: 10000;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+            width: 85%;
+            box-shadow: inset 0 0 20px rgba(79, 121, 66, 0.2), 0 0 40px rgba(0, 0, 0, 0.8);
+            border-radius: 2px;
+        }
+
+        .system-toast::before, .system-toast::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--accent);
+        }
+
+        .system-toast::before { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+        .system-toast::after { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+
+        @keyframes terminalPulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
+        .system-toast-content {
+            animation: terminalPulse 0.2s infinite;
+        }
+
+        /* Пульсации для таймеров */
+        @keyframes pulse-red {
+            0% { text-shadow: 0 0 5px var(--red); opacity: 1; }
+            50% { text-shadow: 0 0 15px var(--red); opacity: 0.8; }
+            100% { text-shadow: 0 0 5px var(--red); opacity: 1; }
+        }
+
+        @keyframes pulse-green {
+            0% { text-shadow: 0 0 5px var(--accent); opacity: 1; }
+            50% { text-shadow: 0 0 10px var(--accent); opacity: 0.7; }
+            100% { text-shadow: 0 0 5px var(--accent); opacity: 1; }
+        }
+
+        .timer-active {
+            animation: pulse-red 2s infinite;
+            font-weight: bold;
+            color: var(--red) !important;
+        }
+
+        .timer-ready {
+            animation: pulse-green 3s infinite;
+            color: var(--accent) !important;
+        }
+
+        .blink-dot {
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 5px var(--accent); }
+            50% { opacity: 0.3; box-shadow: none; }
+        }
+
+        /* Профиль и карточки */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(79, 121, 66, 0.2);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 100px;
+            background: #1a1c14;
+            border: 1px solid var(--accent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .barcode-decor {
+            width: 100%;
+            height: 30px;
+            margin-top: 15px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--gray),
+                var(--gray) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            opacity: 0.2;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 10px;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .card-content {
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 121, 66, 0.2);
+            border-left: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: transform 0.2s;
+        }
+
+        .card-content-title {
+            color: var(--accent);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .card-content-body {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #dfdfdf;
+            white-space: pre-wrap;
+        }
+
+        .editor-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid #2a2a2a !important;
+            border-radius: 10px !important;
+            color: #fff !important;
+            padding: 14px !important;
+            margin-bottom: 12px !important;
+            font-family: inherit;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .editor-input:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 10px rgba(79, 121, 66, 0.3);
+        }
+
+        .card-actions {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-action-small {
+            background: none;
+            border: none;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+            transition: 0.2s;
+        }
+
+        .btn-action-small:hover {
+            opacity: 1;
+        }
+
+        .header-v2 {
+            background: linear-gradient(90deg, rgba(79, 121, 66, 0.1) 0%, rgba(79, 121, 66, 0) 100%);
+            border-left: 3px solid var(--accent);
+            padding: 15px 20px;
+            margin: -10px -10px 25px -10px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .header-v2 .title {
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(79, 121, 66, 0.3);
+        }
+
+        .header-v2 .subtitle {
+            font-size: 11px !important;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .header-divider {
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(255,255,255,0) 100%);
+            margin-top: 10px;
+            opacity: 0.3;
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: 1fr; 
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .doc-btn {
+            width: 100%;
+            height: 70px;
+            background: rgba(79, 121, 66, 0.08) !important;
+            border: 1px solid rgba(79, 121, 66, 0.25) !important;
+            border-left: 6px solid var(--accent) !important;
+            border-radius: 10px;
+            color: var(--accent) !important; 
+            text-shadow: 0 0 8px rgba(79, 121, 66, 0.4); 
+            
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            
+            padding: 0 20px; 
+            
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon {
+            width: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-icon {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .doc-btn:active {
+            background: rgba(79, 121, 66, 0.2) !important;
+            transform: scale(0.98);
+        }
+
+        .nav-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            margin-bottom: 4px;
+            transition: 0.3s ease;
+            display: block;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.5;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        .nav-item.active .nav-icon {
+            filter: drop-shadow(0 0 8px var(--accent));
+            transform: translateY(-2px);
+        }
+
+        #supply-timer {
+            font-size: 48px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 900;
+            color: var(--accent);
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+            display: none;
+            letter-spacing: 3px;
+        }
+
+        @keyframes timer-pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .timer-active {
+            animation: timer-pulse 2s infinite ease-in-out;
+            display: block !important;
+        }
+
+        .supply-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(79, 121, 66, 0.3);
+            border-left: 5px solid var(--accent);
+            border-radius: 16px;
+            padding: 20px 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .supply-point-title {
+            font-size: 26px !important;
+            color: var(--gray) !important;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timer-display {
+            font-size: 58px !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-weight: 900 !important;
+            color: var(--accent) !important;
+            display: block !important;
+            text-align: center !important;
+            margin: 5px 0 !important;
+            line-height: 1 !important;
+            text-shadow: 0 0 20px rgba(79, 121, 66, 0.6) !important;
+        }
+
+        .supply-card {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(79, 121, 66, 0.2) !important;
+            border-left: 5px solid var(--accent) !important;
+            border-radius: 16px !important;
+            padding: 20px 10px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .supply-point-title {
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            color: var(--gray) !important;
+            text-transform: uppercase !important;
+        }
+
+        .btn-supply-container {
+            display: flex;
+            gap: 10px;
+            width: 90%;
+            margin: 15px auto 0 auto;
+        }
+
+        .btn-small-bold {
+            height: 45px !important;
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            flex: 4;
+        }
+
+        .btn-reset-icon {
+            flex: 1;
+            height: 45px !important;
+            background: var(--red) !important;
+            border-color: var(--red) !important;
+            font-size: 20px !important;
+        }
+
+        [id^="timer-"] {
+            font-size: 58px !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            display: block !important;
+            margin: 10px 0 !important;
+            text-align: center !important;
+        }
+
+        .timer-display {
+            font-size: 58px !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-weight: 900 !important;
+            color: var(--accent) !important;
+            text-align: center;
+            line-height: 1.2;
+            min-height: 60px;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .timer-running {
+            color: var(--red) !important;
+            text-shadow: 0 0 20px rgba(255, 59, 48, 0.5) !important;
+        }
+
+        .welcome-container {
+            margin-bottom: 25px;
+            text-align: center;
+            text-transform: uppercase;
+            line-height: 0.9;
+        }
+
+        .welcome-main {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -1px;
+        }
+
+        .welcome-soldier {
+            font-size: 45px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: -2px;
+            text-shadow: 0 0 20px rgba(79, 121, 66, 0.5);
+            margin-top: 5px;
+        }
+        .profile-header-card {
+    background: linear-gradient(90deg, rgba(79, 121, 66, 0.1) 0%, rgba(79, 121, 66, 0) 100%);
+    border-left: 3px solid var(--accent);
+    box-shadow: 0 2px 10px rgba(79, 121, 66, 0.2);
+}
+/* Анимация блока "Личное дело" */
+@keyframes fadeInDownScale {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.profile-header-card {
+    animation: fadeInDownScale 1s ease-out forwards;
+    animation-delay: 0.3s;           /* небольшая задержка после загрузки страницы */
+    opacity: 0;                      /* скрываем до начала анимации */
+}
+/* Анимация для заголовка "Поставки ВС РФ" */
+.header-v2 {
+    animation: fadeInDownScale 1s ease-out forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+}
+
+/* Анимация для блоков с объектами (появляются последовательно) */
+.supply-card {
+    animation: fadeInDownScale 1s ease-out forwards;
+    opacity: 0;
+}
+
+.supply-card:nth-child(1) {
+    animation-delay: 0.6s;  /* Первая карточка после заголовка */
+}
+
+.supply-card:nth-child(2) {
+    animation-delay: 0.9s;  /* Вторая с задержкой */
+}
+
+.supply-card:nth-child(3) {
+    animation-delay: 1.2s;  /* Третья с большей задержкой */
+}
+/* Анимация вылета слева для "Карты" */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Анимация вылета справа для "Карты" */
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Анимация для заголовков и карточек в указанных разделах (последовательное появление) */
+.section-title, h1, h2, .card, .docs-grid .doc-btn, .premium-card, .main-location {
+    animation: fadeInDownScale 1s ease-out forwards;
+    opacity: 0;
+}
+
+/* Задержки для последовательного появления (общие для всех указанных разделов) */
+.section-title:nth-child(1), h1:nth-child(1), h2:nth-child(1), .card:nth-child(1), .docs-grid .doc-btn:nth-child(1), .premium-card:nth-child(1), .main-location:nth-child(1) {
+    animation-delay: 0.3s;
+}
+.section-title:nth-child(2), h1:nth-child(2), h2:nth-child(2), .card:nth-child(2), .docs-grid .doc-btn:nth-child(2), .premium-card:nth-child(2), .main-location:nth-child(2) {
+    animation-delay: 0.6s;
+}
+.section-title:nth-child(3), h1:nth-child(3), h2:nth-child(3), .card:nth-child(3), .docs-grid .doc-btn:nth-child(3), .premium-card:nth-child(3), .main-location:nth-child(3) {
+    animation-delay: 0.9s;
+}
+.section-title:nth-child(4), h1:nth-child(4), h2:nth-child(4), .card:nth-child(4), .docs-grid .doc-btn:nth-child(4), .premium-card:nth-child(4), .main-location:nth-child(4) {
+    animation-delay: 1.2s;
+}
+/* Продолжайте по аналогии для большего количества элементов, если нужно */
+
+/* Специально для "Карты" (p4): чередование слева/справа */
+#p4 .card:nth-child(odd), #p4 h2:nth-child(odd) {
+    animation-name: fadeInLeft;  /* Нечётные: слева */
+}
+#p4 .card:nth-child(even), #p4 h2:nth-child(even) {
+    animation-name: fadeInRight;  /* Чётные: справа */
+}
+/* Анимация для раздела "База" — строгая последовательность */
+.base-animate-1,
+.base-animate-2,
+.base-animate-3,
+.base-animate-4 {
+    animation: fadeInDownScale 1s ease-out forwards;
+    opacity: 0;
+}
+
+/* Задержки — именно в нужном порядке */
+.base-animate-1 { animation-delay: 0.4s; }   /* Воинская часть — первой */
+.base-animate-2 { animation-delay: 0.9s; }   /* Жильё — второй */
+.base-animate-3 { animation-delay: 1.4s; }   /* Авто — третий */
+.base-animate-4 { animation-delay: 1.9s; }   /* Бизнес — последним */
+/* Плавное появление всей группы профиля */
+.profile-header-group {
+    opacity: 0;
+    transform: translateY(40px);
+    animation: profileAppear 1.3s ease-out forwards;
+    animation-delay: 0.6s;           /* появляется чуть позже "Личное дело" */
+}
+
+@keyframes profileAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Дополнительно — аватар чуть "всплывает" с увеличением */
+.avatar {
+    opacity: 0;
+    transform: scale(0.8);
+    animation: avatarPop 1.1s ease-out forwards;
+    animation-delay: 0.8s;           /* чуть позже остальной группы */
+}
+
+@keyframes avatarPop {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.top-right-controls {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    z-index: 1002;
+}
+
+.music-toggle,
+.menu-hamburger {
+    width: 44px;
+    height: 44px;
+    background: rgba(20, 25, 18, 0.85);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    color: var(--accent);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.6);
+    transition: all 0.18s ease;
+}
+
+.music-toggle:active,
+.menu-hamburger:active {
+    transform: scale(0.92);
+    background: var(--accent);
+    color: #000;
+}
+
+.music-toggle[active="true"] {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 16px rgba(79, 121, 66, 0.6);
+}
+/* Шапка — чуть ниже и шире */
+#header-ui {
+    position: relative;
+    z-index: 1000;
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;                /* чуть больше отступов сверху/снизу */
+    background: rgba(0, 0, 0, 0.92);   /* чёрный фон чуть плотнее */
+    border-bottom: 1px solid rgba(79, 121, 66, 0.25);
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--gray);
+    position: relative;
+    margin-top: 0;                     /* если нужно опустить ещё ниже — увеличь до 8px или 12px */
+}
+
+/* Контейнер для кнопок справа */
+.top-right-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Стили кнопок (теперь они на чёрном фоне шапки) */
+.music-toggle,
+.menu-hamburger {
+    width: 38px;
+    height: 38px;
+    background: rgba(30, 35, 28, 0.9);
+    border: 1px solid rgba(79, 121, 66, 0.5);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.music-toggle:active,
+.menu-hamburger:active {
+    transform: scale(0.92);
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+.music-toggle[active="true"] {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 14px rgba(79, 121, 66, 0.5);
+}
+/* Стеклянный блок под фотографией */
+.callsign-glass-block {
+    margin: 0 auto 28px auto;
+    max-width: 340px;
+    padding: 16px 20px;
+    background: rgba(20, 25, 18, 0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(79, 121, 66, 0.35);
+    border-radius: 16px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.55),
+        inset 0 0 24px rgba(79, 121, 66, 0.12);
+}
+
+/* Поле ввода внутри стекла */
+.glass-callsign-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-family: 'Courier New', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    outline: none;
+    text-shadow: 0 0 14px rgba(79, 121, 66, 0.7);
+    caret-color: var(--accent);
+}
+
+.glass-callsign-input::placeholder {
+    color: rgba(79, 121, 66, 0.45);
+    text-shadow: none;
+    font-weight: normal;
+    letter-spacing: 1px;
+}
+
+.glass-callsign-input:focus {
+    text-shadow: 0 0 20px rgba(79, 121, 66, 1);
+}
+
+/* Плавное появление (чтобы красиво выезжало) */
+.profile-header-group,
+.callsign-glass-block {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: glassFadeIn 1.2s ease-out forwards;
+    animation-delay: 0.5s;
+}
+
+@keyframes glassFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Стекло под фотографией */
+.callsign-glass {
+    margin: 0 auto 30px;
+    max-width: 340px;
+    padding: 18px 20px;
+    background: rgba(20, 25, 18, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(79, 121, 66, 0.4);
+    border-radius: 16px;
+    box-shadow: 
+        0 8px 32px rgba(0,0,0,0.5),
+        inset 0 0 20px rgba(79,121,66,0.12);
+}
+
+.glass-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px rgba(79,121,66,0.5);
+}
+
+.glass-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-family: 'Courier New', monospace;
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    outline: none;
+    text-shadow: 0 0 12px rgba(79,121,66,0.7);
+}
+
+.glass-input::placeholder {
+    color: rgba(79,121,66,0.45);
+    text-shadow: none;
+}
+
+.glass-input:focus {
+    text-shadow: 0 0 18px rgba(79,121,66,0.9);
+}
+
+/* Плавное появление обоих блоков */
+.profile-header-group,
+.callsign-glass {
+    opacity: 0;
+    transform: translateY(25px);
+    animation: fadeUp 1.2s ease-out forwards;
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Группа контента стартовой страницы */
+#p0 .start-content {
+    opacity: 0;
+    transform: translateY(-40px);
+    animation: startFadeIn 1.8s ease-out forwards;
+    animation-delay: 0.6s;           /* небольшая задержка после загрузки */
+}
+
+@keyframes startFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+#p0 {
+    transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.9s ease-in;
+    will-change: transform, opacity;  /* оптимизация анимации */
+}
+
+/* На случай, если хочешь чуть ускорить/замедлить — просто измени 0.9s */
+/* Анимация появления плашки "ВС РФ" */
+.vsrf-badge-animate {
+    opacity: 0;
+    transform: translateY(20px) scale(0.92);
+    animation: badgePopIn 1.1s ease-out forwards;
+    animation-delay: 0.9s;          /* появляется позже аватара */
+}
+
+@keyframes badgePopIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+/* Главная карточка банка (как Apple Cash) */
+.bank-hero {
+    position: relative;
+    margin: 20px 0 30px;
+    padding: 24px;
+    background: #000;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+.bank-gradient-circle {
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle at 50% 50%, rgba(79,121,66,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.bank-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.bank-title {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.bank-balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.bank-balance {
+    flex: 1;
+}
+
+.balance-label {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.balance-amount {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 42px;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+    width: 100%;
+    text-align: left;
+    padding: 0;
+}
+
+.balance-amount:focus {
+    outline: none;
+}
+
+.bank-action-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 24px;
+    font-weight: 900;
+    font-size: 14px;
+    margin-left: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(79,121,66,0.4);
+    transition: all 0.2s;
+}
+
+.bank-action-btn:active {
+    transform: scale(0.95);
+}
+
+.bank-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+}
+
+/* Секции ниже */
+.bank-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.upcoming-item,
+.transaction-item {
+    background: rgba(20,25,18,0.8);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.upcoming-avatar,
+.trans-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 16px;
+    color: #000;
+}
+
+.upcoming-info,
+.trans-info {
+    flex: 1;
+}
+
+.upcoming-name,
+.trans-title {
+    font-weight: bold;
+    color: #fff;
+}
+
+.upcoming-desc,
+.trans-date {
+    font-size: 13px;
+    color: #888;
+}
+
+.upcoming-amount,
+.trans-amount {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.positive { color: #4caf50; }
+.negative { color: var(--red); }
+
+/* Маленькая карточка для накоплений */
+.bank-card.small {
+    padding: 16px;
+    background: rgba(30,35,28,0.7);
+    border-radius: 12px;
+}
+.bank-card {
+    background: rgba(20, 25, 18, 0.88);
+    border: 1px solid rgba(79,121,66,0.35);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(79,121,66,0.10);
+    backdrop-filter: blur(8px);
+}
+
+.bank-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.bank-icon {
+    font-size: 32px;
+    margin-right: 14px;
+    color: var(--accent);
+}
+
+.bank-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.bank-amount {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(79,121,66,0.5);
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 44px;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 0 16px;
+    transition: all 0.3s;
+}
+
+.bank-amount:focus {
+    border-bottom-color: var(--accent);
+    box-shadow: 0 6px 24px rgba(79,121,66,0.25);
+    outline: none;
+}
+
+.bank-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 12px;
+}
+
+/* Вклады */
+.deposit-item {
+    background: rgba(30,35,28,0.7);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.deposit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.deposit-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.deposit-type {
+    background: rgba(79,121,66,0.2);
+    border: 1px solid var(--accent);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.deposit-amount {
+    font-size: 28px;
+    padding: 8px 0;
+}
+/* Общая анимация появления блоков в разделе Банк */
+.bank-hero,
+.bank-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: bankFadeIn 0.9s ease-out forwards;
+}
+
+/* Задержки для последовательного появления */
+.bank-hero {
+    animation-delay: 0.4s;           /* первая карточка появляется быстрее всех */
+}
+
+.bank-card.savings {
+    animation-delay: 0.8s;           /* накопительный счёт — второй */
+}
+
+.bank-card.deposits {
+    animation-delay: 1.2s;           /* активные вклады — последними */
+}
+
+/* Сама анимация */
+@keyframes bankFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Дополнительно — лёгкое увеличение сумм при фокусе */
+.bank-amount:focus {
+    transform: scale(1.03);
+    transition: transform 0.2s ease;
+    text-shadow: 0 0 16px rgba(79,121,66,0.6);
+}
+
+/* Микро-анимация иконок при наведении/фокусе (опционально, но красиво) */
+.bank-icon {
+    transition: transform 0.3s ease;
+}
+
+.bank-card:hover .bank-icon {
+    transform: scale(1.15) rotate(5deg);
+}
+.balance-amount {
+    animation: subtlePulse 4s infinite alternate ease-in-out;
+}
+
+@keyframes subtlePulse {
+    from { text-shadow: 0 0 10px rgba(79,121,66,0.3); }
+    to   { text-shadow: 0 0 20px rgba(79,121,66,0.7); }
+}
+/* Увеличенные кнопки на странице профиля */
+.btn-main,
+.object-item {
+    height: 70px;                    /* высота кнопок — заметно больше */
+    font-size: 15px !important;      /* текст был 11–12 px → теперь 15 px */
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    padding: 0 18px;
+    border-radius: 16px;
+    border: 2px solid var(--accent);
+    background: rgba(26, 34, 26, 0.9);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    margin-bottom: 14px;             /* больше воздуха между кнопками */
+    text-transform: uppercase;
+}
+
+/* Hover и active эффекты (чтобы кнопки "оживали") */
+.btn-main:hover,
+.object-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(79,121,66,0.25);
+    background: rgba(79,121,66,0.12);
+}
+
+.btn-main:active,
+.object-item:active {
+    transform: scale(0.96);
+    background: var(--accent) !important;
+    color: #000 !important;
+}
+
+/* Увеличиваем расстояние в сетке 1fr 1fr */
+div[style*="grid-template-columns: 1fr 1fr"] {
+    gap: 14px !important;           /* было 10px → теперь 14px */
+    margin-top: 14px !important;
+}
+
+/* Для сетки объектов внизу (ЦГБ, Поставки и т.д.) */
+.objects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.rank-card {
+    background: rgba(20,25,18,0.9);
+    border: 1px solid rgba(79,121,66,0.4);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(79,121,66,0.1);
+    backdrop-filter: blur(8px);
+}
+
+.rank-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.rank-icon {
+    font-size: 36px;
+    margin-right: 16px;
+    color: var(--accent);
+}
+
+.rank-header h2 {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.rank-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #ddd;
+}
+
+.rank-list li {
+    margin-bottom: 12px;
+    padding-left: 24px;
+    position: relative;
+}
+
+.rank-list li::before {
+    content: "•";
+    color: var(--accent);
+    position: absolute;
+    left: 0;
+    font-size: 20px;
+}
+
+.rank-footer {
+    text-align: center;
+    font-size: 14px;
+    color: var(--gray);
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(79,121,66,0.08);
+    border-radius: 12px;
+}
+/* Анимация для заголовков повышения */
+@keyframes rankHeaderFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.rank-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    /* Применяем анимацию */
+    animation: rankHeaderFade 0.8s ease-out forwards;
+}
+
+.rank-icon {
+    font-size: 24px;
+    /* Можно добавить легкое пульсирующее свечение в цвет акцента */
+    text-shadow: 0 0 10px var(--accent);
+    display: inline-block;
+}
+
+.rank-card {
+    /* Чтобы карточки появлялись по очереди, добавим задержку появления для каждой */
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+/* Стилизация списка для аккуратности */
+.rank-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rank-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text);
+    opacity: 0.9;
+}
+
+.rank-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+}
+/* Увеличенная иконка шлема */
+.rank-icon {
+    font-size: 32px; /* Увеличили с 24px */
+    text-shadow: 0 0 15px var(--accent);
+    display: inline-block;
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
+
+/* Анимация заголовка (шлем + текст рядом) */
+.rank-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    animation: rankHeaderFade 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Анимация для строк списка внутри карточек */
+.rank-list li {
+    opacity: 0;
+    transform: translateX(-10px);
+    animation: listSlideIn 0.5s ease-out forwards;
+}
+
+/* Настраиваем задержку появления для каждой строки (чтобы шел эффект "лесенки") */
+.rank-list li:nth-child(1) { animation-delay: 0.3s; }
+.rank-list li:nth-child(2) { animation-delay: 0.4s; }
+.rank-list li:nth-child(3) { animation-delay: 0.5s; }
+.rank-list li:nth-child(4) { animation-delay: 0.6s; }
+.rank-list li:nth-child(5) { animation-delay: 0.7s; }
+.rank-list li:nth-child(6) { animation-delay: 0.8s; }
+.rank-list li:nth-child(7) { animation-delay: 0.9s; }
+.rank-list li:nth-child(8) { animation-delay: 1.0s; }
+.rank-list li:nth-child(9) { animation-delay: 1.1s; }
+
+@keyframes listSlideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes rankHeaderFade {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Текст внутри списка (критерии) */
+.rank-list li {
+    font-size: 16px; /* Было 13px, теперь текст крупный и четкий */
+    line-height: 1.6;
+    margin-bottom: 12px;
+    padding-left: 25px;
+    opacity: 0; /* Оставляем для анимации */
+    transform: translateX(-10px);
+    animation: listSlideIn 0.5s ease-out forwards;
+}
+
+/* Увеличиваем маркер (точку) перед текстом */
+.rank-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: bold;
+}
+.contact-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: 0.2s;
+}
+.contact-btn:active { transform: scale(0.9); }
+.contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .contact-item:active {
+            transform: scale(0.98);
+        }
+
+        .contact-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+        }
+
+        .ds-style { background: linear-gradient(90deg, #5865F2, #4752C4); }
+        .tg-style { background: linear-gradient(90deg, #229ED9, #1c8adb); }
+        .vk-style { background: linear-gradient(90deg, #0077FF, #0066db); }
+
+        .contact-text {
+            text-transform: uppercase;
+        }
+        /* Анимация: появление сверху вниз */
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-30px); /* Начало выше основной позиции */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);    /* Финиш в нормальной позиции */
+    }
+}
+
+/* Применяем анимацию к элементам списка контактов */
+.contact-item {
+    opacity: 0; 
+    animation: slideDownFade 0.5s ease-out forwards;
+}
+
+/* Очередь вылета (задержка) */
+.contact-item:nth-child(1) { animation-delay: 0.2s; }
+.contact-item:nth-child(2) { animation-delay: 0.4s; }
+.contact-item:nth-child(3) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+
+<div class="edge-hint"></div>
+
+<audio id="bgMusic" loop preload="auto"><source src="gymn.mp3" type="audio/mpeg"></audio>
+<div class="aura"></div>
+<div id="sideOverlay" class="overlay-shadow" onclick="toggleSideMenu(false)"></div>
+
+<div id="sidePanel" class="side-panel">
+    <h3 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Быстрый доступ</h3>
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
+    <button class="btn-main" onclick="openCalendar()" style="margin-bottom:15px;">📅 Календарь</button>
+    <button class="btn-main" onclick="toggleSideMenu(false); nav(8)" style="margin-bottom:15px;">⚖️ Срок / Наказание</button>
+    <button class="btn-main" onclick="toggleSideMenu(false); nav(9)" style="margin-bottom:15px;">🚚 ПОСТАВКИ ВС РФ</button>
+    <button class="btn-main" onclick="toggleSideMenu(false); nav(11)" style="margin-bottom:15px;">📞 Контакты</button>
+    <button class="btn-main btn-secondary" onclick="toggleSideMenu(false); nav(1)">Профиль</button>
+    <button class="btn-main btn-secondary" onclick="toggleSideMenu(false); nav(4)">Навигация</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div>
+            <span style="color: var(--accent); font-weight: bold; letter-spacing: 2px;">ВС РФ // ТЕРМИНАЛ</span>
+            <div id="system-clock" style="font-size: 10px; color: var(--gray); font-family: monospace;">00:00:00 MSK</div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 9px; color: var(--accent); opacity: 0.8;">СВЯЗЬ: УСТАНОВЛЕНА</div>
+            <div class="blink-dot" style="display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="calOverlay" class="cal-overlay" onclick="closeCalendar()">
+    <div id="calModal" class="cal-modal" onclick="event.stopPropagation()">
+        <div class="calendar-header">
+            <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--accent); font-size:20px;">◀</button>
+            <div id="monthLabel">Январь 2026</div>
+            <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--accent); font-size:20px;">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <button class="btn-main btn-secondary" style="margin-top:20px; color:var(--red)" onclick="closeCalendar()">ЗАКРЫТЬ</button>
+    </div>
+</div>
+
+<div id="p0" class="page active-page">
+    <div class="scanner-grid"></div>
+    <div class="scan-line line-1"></div>
+    <div class="scan-line line-2"></div>
+
+    <div class="start-content" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center; padding:30px; position:relative; z-index:10;">
+        <div class="fade-in-top tactic-header">
+            <div class="tactic-main-line">
+                <span class="tactic-bracket">[</span><span class="tactic-text">Центр мобильного управления</span><span class="tactic-bracket">]</span>
+            </div>
+            <div class="tactic-sub-code">SYS.v78_ARBAT_INIT... OK</div>
+        </div>
+        <div style="color:var(--red); font-weight:900; font-size:18px; text-transform:uppercase; margin-bottom:20px; letter-spacing: 1px;">АРМИЯ | RMRP "АРБАТ"</div>
+        <div class="welcome-container">
+            <div class="welcome-main">ДОБРО ПОЖАЛОВАТЬ,</div>
+            <div class="welcome-soldier">БОЕЦ!</div>
+        </div>
+        <button class="btn-main" onclick="startApp()">НАЧАТЬ СЛУЖБУ!</button>
+    </div>
+</div>
+
+<div id="header-ui">
+    <div class="status-header">
+        <div><span style="color:var(--accent)">●</span> RP_HELPER v1.0 beta</div>
+        
+        <!-- Кнопки музыки и меню теперь внутри шапки -->
+        <div class="top-right-controls">
+            <button class="music-toggle" onclick="toggleMusicManual(event)" title="Фоновая музыка">
+                <span id="music-icon">🔇</span>
+            </button>
+            <button class="menu-hamburger" onclick="toggleSideMenu(true)" title="Меню">
+                ☰
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="p1" class="page">
+    <div class="card profile-header-card" style="text-align:center; margin: 25px 0 15px 0;">
+    <h2 style="font-size: 24px; font-weight: 900; color: var(--accent); 
+               text-transform: uppercase; margin: 0; letter-spacing: 2px; 
+               text-shadow: 0 0 12px rgba(79, 121, 66, 0.4);">
+        ЛИЧНОЕ ДЕЛО
+    </h2>
+</div>
+
+<div style="text-align:center; margin-bottom: 20px;">
+    <div class="avatar" onclick="document.getElementById('in-ava').click()">
+        <img id="view-ava" style="display:none;">
+        <span id="label-ava" style="font-size:60px">👤</span>
+    </div>
+    
+    <input type="file" id="in-ava" style="display:none" onchange="storeImg(this, 'avatar')">
+    
+    <div class="vsrf-badge-animate" 
+     style="background:var(--accent); color:#000; padding:8px 24px; border-radius:24px; font-size:14px; font-weight:900; margin: 18px 0 24px 0; display:inline-block; box-shadow:0 4px 16px rgba(79,121,66,0.4);">
+    ВС РФ
+</div>
+</div>
+
+<!-- Стеклянный блок "Позывной" -->
+<div class="callsign-glass">
+    <div class="glass-label">ПОЗЫВНОЙ</div>
+    <input type="text" id="callsign" placeholder="ВВОД ДАННЫХ" oninput="storeData()"
+           class="glass-input">
+</div>
+
+    <div class="card">
+        <input type="text" id="surname" placeholder="Фамилия" oninput="storeData()" style="margin-bottom:8px;">
+        <input type="text" id="name" placeholder="Имя" oninput="storeData()" style="margin-bottom:8px;">
+        <input type="text" id="patronymic" placeholder="Отчество" oninput="storeData()" style="margin-bottom:8px;">
+        
+        <input type="text" id="static" placeholder="ID: 000000" oninput="storeData()">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="btn-main btn-secondary" onclick="openModal('rank')"><span id="rank-display">Звание</span></div>
+            <div class="btn-main btn-secondary" onclick="openModal('unit')"><span id="unit-display">Подразделение</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+            <button class="btn-main btn-secondary" onclick="nav(5)">⚖️ ЗАКОНЫ</button>
+            <button class="btn-main btn-secondary" onclick="nav(6)">🎓 ЛЕКЦИИ</button>
+        </div>
+        <button class="btn-main" style="margin-top:10px" onclick="nav(7)">⏱️ ТАЙМЕР</button>
+    </div>
+    <div class="card"><span class="section-title" style="font-size:14px">ЗАМЕТКИ</span><textarea id="notes" style="min-height:100px" placeholder="..." oninput="storeData()"></textarea></div>
+    <div class="card">
+        <span class="section-title">ОХРАНЯЕМЫЕ ОБЪЕКТЫ</span>
+        <div class="objects-grid">
+            <div class="object-item" onclick="openInfo('cgb')">ЦГБ 3 (ЦГБ 7)</div>
+            <div class="object-item" onclick="openInfo('fso')">ПОСТАВКИ ФСО</div>
+            <div class="object-item" onclick="openInfo('vsrf')">ПОСТАВКИ ВС РФ</div>
+            <div class="object-item" onclick="openInfo('kraz')">ВОЙНА ЗА КрАЗ</div>
+        </div>
+    </div>
+</div>
+
+<div id="infoOverlay" class="info-overlay">
+    <div id="infoData" class="info-content"></div>
+    <button class="btn-main btn-secondary" onclick="closeInfo()" style="margin-top:30px;">⬅ НАЗАД К СПИСКУ</button>
+</div>
+
+<div id="p2" class="page">
+    <div class="bank-hero">
+        <div class="bank-gradient-circle"></div>
+        <div class="bank-hero-content">
+            <h2 class="bank-title">ЗАРПЛАТНЫЙ СЧЁТ</h2>
+            <div class="bank-balance-row">
+                <div class="bank-balance full-width">
+                    <span class="balance-label">БАЛАНС</span>
+                    <input type="text" id="cash" class="balance-amount large" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+                </div>
+            </div>
+            <div class="bank-info">
+                <span>Военный банк</span>
+                <span class="bank-secure">ЗАЩИЩЕНО ГОСУДАРСТВОМ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Накопительный счёт (перенесён сюда) -->
+    <div class="bank-card savings">
+        <div class="bank-card-header">
+            <span class="bank-icon">🏦</span>
+            <span class="bank-title">НАКОПИТЕЛЬНЫЙ СЧЁТ</span>
+        </div>
+        <input type="text" id="savings" class="bank-amount" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        <div class="bank-subtitle">Доступно для снятия в любой момент</div>
+    </div>
+
+    <!-- Блок "Активные вклады" -->
+    <div class="bank-card deposits">
+        <div class="bank-card-header">
+            <span class="bank-icon">📈</span>
+            <span class="bank-title">АКТИВНЫЕ ВКЛАДЫ</span>
+        </div>
+
+        <div class="deposit-item">
+            <div class="deposit-header">
+                <span class="deposit-name">ВКЛАД #1</span>
+                <select id="depT1" class="deposit-type" onchange="storeData()">
+                    <option>Онлайн</option>
+                    <option>Оффлайн</option>
+                </select>
+            </div>
+            <input type="text" id="depV1" class="bank-amount deposit-amount" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+
+        <div class="deposit-item">
+            <div class="deposit-header">
+                <span class="deposit-name">ВКЛАД #2</span>
+                <select id="depT2" class="deposit-type" onchange="storeData()">
+                    <option>Онлайн</option>
+                    <option>Оффлайн</option>
+                </select>
+            </div>
+            <input type="text" id="depV2" class="bank-amount deposit-amount" placeholder="0 ₽" oninput="formatRubles(this); storeData()">
+        </div>
+    </div>
+</div>
+
+<div id="p3" class="page">
+    <h1>ИМУЩЕСТВО</h1>
+
+    <!-- 1. Воинская часть (появляется первой) -->
+    <div class="main-location base-animate-1">
+        <div class="main-location-sub">ОСНОВНОЙ АДРЕС ДИСЛОКАЦИИ</div>
+        <h2 class="main-location-title">Воинская часть № 12132</h2>
+        <div style="font-size: 12px; color: var(--accent); margin-top: 5px;">★★★★★</div>
+    </div>
+
+    <!-- 2. Жильё (вторая) -->
+    <div class="card base-animate-2">
+        <h2>🏠 Жилье</h2>
+        <div id="l-homes"></div>
+        <button class="btn-main" onclick="addNew('homes')">+ Добавить</button>
+    </div>
+
+    <!-- 3. Авто (третья) -->
+    <div class="card base-animate-3">
+        <h2>🚗 Авто</h2>
+        <div id="l-autos"></div>
+        <button class="btn-main" onclick="addNew('autos')">+ Добавить</button>
+    </div>
+
+    <!-- 4. Бизнес (самая последняя) -->
+    <div class="card base-animate-4">
+        <h2>💼 Бизнес</h2>
+        <div id="l-biz"></div>
+        <button class="btn-main" onclick="addNew('biz')">+ Добавить</button>
+    </div>
+</div>
+
+<div id="p4" class="page">
+    <h1>НАВИГАЦИЯ И ПЛАНЫ</h1>
+    <div id="maps-list"></div>
+    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+    <h2 style="font-size: 26px; color: var(--accent); margin-bottom: 10px; text-transform: uppercase;">📋 Планы объектов</h2>
+    <div class="card" style="display: flex; flex-direction: column; gap: 15px;">
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">РЛС Орбита</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan1.png?raw=true" style="width:100%; border-radius:12px;" alt="План 1"></div>
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">Медицинские склады</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan2.png?raw=true" style="width:100%; border-radius:12px;" alt="План 2"></div>
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">Зарайское медицинское хранилище</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan3.png?raw=true" style="width:100%; border-radius:12px;" alt="План 3"></div>
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">Финансовая поставка</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan4.png?raw=true" style="width:100%; border-radius:12px;" alt="План 4"></div>
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">Объект №7</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan5.png?raw=true" style="width:100%; border-radius:12px;" alt="План 5"></div>
+        <div><div style="font-size: 20px; color: var(--gray); margin-bottom: 5px;">Военные склады и Государственный склад медицинского оборудования</div><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/plan6.png?raw=true" style="width:100%; border-radius:12px;" alt="План 6"></div>
+    </div>
+    <h2 style="font-size: 26px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; text-transform: uppercase;">⚔️ Расположение налётов</h2>
+    <div class="card"><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/naleti.png?raw=true" style="width:100%; border-radius:12px;" alt="Карта налётов"></div>
+    <h2 style="font-size: 26px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; text-transform: uppercase;">🏢 Расположение ЖК</h2>
+    <div class="card"><img src="https://github.com/Grom66/-GROM66-.github.io/blob/main/GK.png?raw=true" style="width:100%; border-radius:12px;" alt="Карта ЖК"></div>
+</div>
+
+<div id="p5" class="page">
+    <div class="header-v2">
+        <div class="title">ЗАКОНОДАТЕЛЬСТВО</div>
+        <div class="subtitle">Нормативно-правовые акты и уставы</div>
+        <div class="header-divider"></div>
+    </div>
+    
+    <div class="content-area" style="padding: 5px 15px 100px 15px;">
+        <div class="docs-grid">
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/document/d/1tPatdyybtyCmeSypzEXA6n5mHc21DHksSlBRVqYUX2c/edit?tab=t.0', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> УСТАВ ВООРУЖЕННЫХ СИЛ РФ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span>
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/document/d/1QOrmAMvZ9n64qedIK-xZsU5GXwjF8N8S/edit', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> УСТАВ УПРАВЛЕНИЕ ВОЕННОЙ ПОЛИЦИИ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span>
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/document/d/1itHfF2esrO1ClFchMrUhxQ2pfV0pacqIbpfDc6Baw34/edit?tab=t.0', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> УСТАВ КАРАУЛЬНО-ПОСТОВОЙ СЛУЖБЫ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> 
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/document/d/1CJ49wPwTUalXZ48nKXhBaCzB3Up5gEJ1FHdRUmoqpZU/edit?tab=t.0', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> УСТАВ СТРОЕВОЙ СЛУЖБЫ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span>
+            </button>
+        </div>
+
+        <div id="l-lecs-list"></div>
+        <!-- Модалка для добавления лекции -->
+        <div class="modal-overlay" id="lec-editorOverlay" onclick="closeModal('lec-editor')"></div>
+        <div class="modal-bottom" id="lec-editorModal">
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ДОБАВИТЬ ЗАКОН</h2>
+            <input id="in-lec-title" class="editor-input" placeholder="Заголовок" type="text">
+            <textarea id="in-lec-text" class="editor-input" placeholder="Текст закона" rows="5"></textarea>
+            <input id="in-lec-file" type="file" accept="image/*" style="margin-bottom:20px;">
+            <button class="btn-main" onclick="saveContent('lecs')">СОХРАНИТЬ</button>
+        </div>
+        <button class="btn-main" onclick="openModal('lec-editor')">+ ДОБАВИТЬ ЗАКОН</button>
+    </div>
+</div>
+
+<div id="p6" class="page">
+    <div class="header-v2">
+        <div class="title">АРХИВ ЛЕКЦИЙ</div>
+        <div class="subtitle">ИНФОРМАЦИОННЫЙ ОТДЕЛ ВС РФ</div>
+        <div class="header-divider"></div>
+    </div>
+    <div class="content-area" style="padding: 0 15px 100px 15px;">
+        <div class="docs-grid">
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/presentation/d/1eLrVtC_ceLkljJhw9cKifYg3mBQavuxwz2EIifCGQfc/edit?slide=id.g3b8afa48615_0_217#slide=id.g3b8afa48615_0_217', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> ВСТУПИТЕЛЬНАЯ ЛЕКЦИЯ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span>
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/presentation/d/1RjP6aZ7ESheisMALGEiRC-CXcKqlUmY3aWa237mUtJI/edit?slide=id.g3b8ef34f799_0_21#slide=id.g3b8ef34f799_0_21', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> ЛЕКЦИЯ ПО КАРАУЛЬНО-ПОСТОВОЙ СЛУЖБЕ (КПС)
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span>
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/presentation/d/1pFk2Xo04-oDpKdndKji6u2sj7n562zAD/edit?slide=id.p1#slide=id.p1', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> ЛЕКЦИЯ ПО УСТАВУ ВС РФ И СТРОЕВОЙ СЛУЖБЕ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> 
+            </button>
+            <button class="doc-btn" onclick="window.open('https://docs.google.com/presentation/d/1kAp5T2NFVjvutasqyoSeePuVoIghgenx4tI2RfzHRyg/edit?slide=id.g3b8f5c1e8c3_0_80#slide=id.g3b8f5c1e8c3_0_80', '_blank')">
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> ЛЕКЦИЯ ПО ПРОФОРИЕНТАЦИИ ВС РФ
+                <span class="btn-icon"><img src="zvezda.png" class="custom-icon"></span> 
+            </button>
+        </div>
+        <div id="l-laws-list"></div>
+        <!-- Модалка для добавления закона -->
+        <div class="modal-overlay" id="law-editorOverlay" onclick="closeModal('law-editor')"></div>
+        <div class="modal-bottom" id="law-editorModal">
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ДОБАВИТЬ ЛЕКЦИЮ</h2>
+            <input id="in-law-title" class="editor-input" placeholder="Заголовок" type="text">
+            <textarea id="in-law-text" class="editor-input" placeholder="Текст лекции" rows="5"></textarea>
+            <input id="in-law-file" type="file" accept="image/*" style="margin-bottom:20px;">
+            <button class="btn-main" onclick="saveContent('laws')">СОХРАНИТЬ</button>
+        </div>
+        <button class="btn-main" onclick="openModal('law-editor')">+ ДОБАВИТЬ ЛЕКЦИЮ</button>
+    </div>
+</div>
+
+<div id="p7" class="page">
+    <h1>ТАЙМЕР</h1>
+    <div class="card">
+        <div id="t-val" style="font-size:80px; text-align:center; margin:30px 0; color:var(--accent); font-family:monospace; font-weight:bold;">00:00</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(10)">10 МИН</button>
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(20)">20 МИН</button>
+            <button class="btn-main btn-secondary" style="margin:0; padding:10px; font-size:12px;" onclick="setTimer(30)">30 МИН</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <button class="btn-main" style="margin:0;" onclick="startTimer()">СТАРТ</button>
+            <button class="btn-main" style="margin:0;" onclick="stopTimer()">ПАУЗА</button>
+        </div>
+        <button class="btn-main btn-secondary" style="margin:0; color:var(--red); border: 1px solid var(--red);" onclick="resetTimer()">СБРОСИТЬ</button>
+    </div>
+    <button class="btn-main btn-secondary" style="margin-top:20px;" onclick="nav(1)">НАЗАД В ПРОФИЛЬ</button>
+</div>
+
+<div id="p8" class="page">
+    <h1>ТЮРЕМНЫЙ СРОК</h1>
+    <div class="card">
+        <span class="section-title">Тип заключения</span>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="typePrison" class="btn-main" onclick="setPrisonType('ТЮРЬМА')" style="flex:1; background: var(--accent) !important; color: #000 !important; font-weight:900;">ТЮРЬМА</button>
+            <button id="typeDemorgan" class="btn-main" onclick="setPrisonType('ДЕМОРГАН')" style="flex:1; opacity: 0.6; font-weight:900;">ДЕМОРГАН</button>
+        </div>
+        <span class="section-title">Установка срока</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <input type="number" id="timeValue" placeholder="Кол-во" class="timer-input-fix">
+            <select id="timeUnit" class="btn-main" style="height: 54px; font-size: 14px; margin-bottom:0; background: #1a221a !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important;">
+                <option value="1">Минуты</option>
+                <option value="60">Часы</option>
+                <option value="1440">Дни</option>
+            </select>
+        </div>
+        <button class="btn-main" id="startPrisonTimer" onclick="startPrisonTimer()" style="background: #ff3b30 !important; color: #fff !important; border: none !important; margin-top:10px; font-weight: 900; box-shadow: 0 0 15px rgba(255,59,48,0.3);">ЗАПУСТИТЬ ТАЙМЕР</button>
+    </div>
+    <div id="timerDisplay" class="card" style="display: none; text-align: center; border: 2px solid #ff3b30 !important; background: rgba(255, 59, 48, 0.05) !important; margin-top: 20px;">
+        <div id="prisonStatusTitle" style="color: #ff3b30; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; font-size: 12px;">ЗАКЛЮЧЕНИЕ: ТЮРЬМА</div>
+        <div id="prisonCountdown" style="font-size: 42px; font-family: 'Courier New', monospace; font-weight: 900; margin: 15px 0; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2);">00:00:00</div>
+        <button class="btn-main" onclick="stopPrisonTimer()" style="background: rgba(255,255,255,0.1) !important; font-size: 12px; height: 40px;">СБРОСИТЬ</button>
+    </div>
+</div>
+
+<div id="p9" class="page">
+    <div class="header-v2">
+        <div class="title">ПОСТАВКИ ВС РФ</div>
+        <div class="subtitle">КОНТРОЛЬ ВРЕМЕНИ ОТКАТА</div>
+        <div class="header-divider"></div>
+    </div>
+
+    <div class="content-area" style="padding: 15px 15px 100px 15px;">
+        
+        <div class="supply-card">
+            <div class="supply-point-title">РЛС ОРБИТА</div>
+            <div id="timer-orbita" class="timer-display">ГОТОВ</div>
+            <div class="btn-supply-container">
+                <button class="btn-main btn-small-bold" onclick="startSupply('orbita')">🚚 ВЫЕЗД</button>
+                <button class="btn-main btn-reset-icon" onclick="resetSupply('orbita')">✕</button>
+            </div>
+        </div>
+
+        <div class="supply-card">
+            <div class="supply-point-title">ОБЪЕКТ №7</div>
+            <div id="timer-n7" class="timer-display">ГОТОВ</div>
+            <div class="btn-supply-container">
+                <button class="btn-main btn-small-bold" onclick="startSupply('n7')">🚚 ВЫЕЗД</button>
+                <button class="btn-main btn-reset-icon" onclick="resetSupply('n7')">✕</button>
+            </div>
+        </div>
+
+        <div class="supply-card">
+            <div class="supply-point-title">ВОЕННЫЕ СКЛАДЫ</div>
+            <div id="timer-sklad" class="timer-display">ГОТОВ</div>
+            <div class="btn-supply-container">
+                <button class="btn-main btn-small-bold" onclick="startSupply('sklad')">🚚 ВЫЕЗД</button>
+                <button class="btn-main btn-reset-icon" onclick="resetSupply('sklad')">✕</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="p10" class="page">
+    <h1 style="text-align:center; margin:40px 0 30px; font-size:32px; color:var(--accent); letter-spacing:2px; text-shadow:0 0 16px rgba(79,121,66,0.5);">
+        СИСТЕМА ПОВЫШЕНИЯ
+    </h1>
+
+    <!-- Блок 1: Рядовой → Ефрейтор -->
+    <div class="rank-card">
+        <div class="rank-header">
+            <span class="rank-icon">🪖</span>
+            <h2>Рядовой → Ефрейтор</h2>
+        </div>
+        <ul class="rank-list">
+            <li>Прослушивание вступительной лекции</li>
+            <li>Принятие воинской присяги</li>
+            <li>Прослушивание лекций: Устав ВС РФ и Строевая подготовка</li>
+            <li>Прослушивание лекций: Караульно-постовая служба</li>
+            <li>Тренировка по физической подготовке (теория + практика) [УВП/ВК]</li>
+            <li>Тренировка по боевой подготовке (теория + практика) [ВК]</li>
+            <li>Пост НА ВЫБОР:  
+                • Пост Штаб — 60 мин (доклады каждые 20 мин)  
+                • Пост КПП-1 (проходная) — 60 мин (доклады каждые 20 мин)</li>
+            <li>Совместный пеший патруль по Воинской части с ВА — 60 мин [доклады каждые 20 мин]</li>
+            <li>Участие в 3 поставках (скриншот: ящик в руках / жёлтая линия, бодикамера ОБЯЗАТЕЛЬНО)</li>
+        </ul>
+    </div>
+
+    <!-- Блок 2: Ефрейтор → Мл. Сержант -->
+    <div class="rank-card">
+        <div class="rank-header">
+            <span class="rank-icon">🪖</span>
+            <h2>Ефрейтор → Младший сержант</h2>
+        </div>
+        <ul class="rank-list">
+            <li>Тренировка по постовой службе и вождению (теория + практика) [РОиО/ВК]</li>
+            <li>Пост КПП-1 — 60 мин (доклады каждые 20 мин) [без экзамена заступать запрещено]</li>
+            <li>Пост КПП-2 — 60 мин (доклады каждые 20 мин) [без экзамена заступать запрещено]</li>
+            <li>Тренировка по огневой подготовке (теория + практика) [ССО/ВК]</li>
+            <li>Тренировка по медицинской подготовке (теория + практика) [МР/ВК]</li>
+            <li>Прослушивание лекций: Медицинская подготовка, Профориентация</li>
+            <li>Участие в 6 поставках (скриншот: ящик в руках / жёлтая линия, бодикамера ОБЯЗАТЕЛЬНО)</li>
+            <li>Сдача экзамена</li>
+        </ul>
+    </div>
+
+    <div class="rank-footer">
+        <p>После выполнения всех условий обратитесь к командиру подразделения для сдачи экзамена и присвоения звания.</p>
+    </div>
+    </div>
+    
+    <div id="p11" class="page">
+            <div class="header-v2">
+                <div class="title">СВЯЗЬ</div>
+                <div class="subtitle">ОФИЦИАЛЬНЫЕ РЕСУРСЫ</div>
+                <div class="header-divider"></div>
+            </div>
+
+            <div class="content-area" style="padding: 15px;">
+                <div class="contact-list">
+                    <a href="https://rmrp.ru/discord" target="_blank" class="contact-item ds-style">
+                        <span class="btn-icon"><img src="icons_DS.png" class="custom-icon"></span>
+                        <span class="contact-text">DISCORD RMRP</span>
+                    </a>
+                    
+                    <a href="https://t.me/rmrp_official" target="_blank" class="contact-item tg-style">
+                        <span class="btn-icon"><img src="icon_Telega.png" class="custom-icon"></span>
+                        <span class="contact-text">TELEGRAM</span>
+                    </a>
+                    
+                    <a href="https://vk.com/rmroleplay" target="_blank" class="contact-item vk-style">
+                        <span class="btn-icon"><img src="icon_VK.png" class="custom-icon"></span>
+                        <span class="contact-text">Vkontakte</span>
+                    </a>
+
+                    <a href="https://forum.rmrp.ru/link-forums/spec-svjaz-discord-vooruzhennyx-sil.193/" target="_blank" class="contact-item ds-style">
+                        <span class="btn-icon"><img src="icons_DS.png" class="custom-icon"></span>
+                        <span class="contact-text">DISCORD Армия Арбат</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+<nav class="nav" id="bottom-nav">
+    <div class="nav-item active" id="n1" onclick="nav(1)">
+        <img src="icon_profile.png" class="nav-icon">
+        Профиль
+    </div>
+    <div class="nav-item" id="n2" onclick="nav(2)">
+        <img src="icon_money.png" class="nav-icon">
+        Банк
+    </div>
+    <div class="nav-item active" onclick="nav(10)">
+        <img src="zvezda.png" class="nav-icon">
+        Повышение
+    </div>
+    <div class="nav-item" id="n3" onclick="nav(3)">
+        <img src="icon_home.png" class="nav-icon">
+        База
+    </div>
+    <div class="nav-item" id="n4" onclick="nav(4)">
+        <img src="icon_map.png" class="nav-icon">
+        Карты
+    </div>
+</nav>
+
+<div class="modal-overlay" id="rankOverlay" onclick="closeModal('rank')"></div>
+<div class="modal-bottom" id="rankModal">
+    <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ВЫБЕРИТЕ ЗВАНИЕ</h2>
+    <div id="rank-list"></div>
+</div>
+
+<div class="modal-overlay" id="unitOverlay" onclick="closeModal('unit')"></div>
+<div class="modal-bottom" id="unitModal">
+    <h2 style="text-align:center; margin-bottom:20px; color:var(--accent);">ПОДРАЗДЕЛЕНИЕ</h2>
+    <div id="unit-list"></div>
+</div>
+
+<script>
+    // ==========================================
+    // КОНСТАНТЫ (ЗОЛОТОЙ СТАНДАРТ КЛЮЧЕЙ)
+    // ==========================================
+    const KEYS = {
+        DATA: 'rp_data_vsrf_v78',
+        LECS: 'rp_v_lecs',
+        LAWS: 'rp_v_laws',
+        PRISON_END: 'rp_prison_end_v2',
+        PRISON_TYPE: 'rp_prison_type_v2',
+        CALENDAR: 'rp_calendar_notes_v1',
+        SUPPLY_ORBITA: 'supply_orbita',
+        SUPPLY_N7: 'supply_n7',
+        SUPPLY_SKLAD: 'supply_sklad'
+    };
+
+    // Глобальные переменные
+    const audio = document.getElementById('bgMusic');
+    let db; // IndexedDB для изображений
+    let tSec = 0, tInt = null; // Общий таймер
+    let prisonInterval = null; // Таймер тюрьмы
+    let selectedType = 'ТЮРЬМА';
+    let supplyIntervals = { orbita: null, n7: null, sklad: null };
+    let currentViewDate = new Date();
+
+    // Подключение IndexedDB
+    const request = indexedDB.open("GtaRpDB_VS_RF", 2);
+    request.onupgradeneeded = e => { e.target.result.createObjectStore("files", {keyPath:"id"}); };
+    request.onsuccess = e => { db = e.target.result; loadAll(); };
+
+    // ==========================================
+    // ЗАПУСК ПРИЛОЖЕНИЯ
+    // ==========================================
+    function startApp() {
+    const startPage = document.getElementById('p0');
+    
+    // Запускаем анимацию ухода вверх
+    startPage.style.transition = 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.9s ease-in';
+    startPage.style.transform = 'translateY(-100%)';
+    startPage.style.opacity = '0';
+
+    // ← Вот сюда вставляем звук перехода — сразу после начала анимации
+    new Audio('mehanizm_zvuk.mp3').play().catch(() => {});  // ← замените 'transition.mp3' на имя вашего файла
+
+    // Включаем фоновую музыку (если она должна играть сразу)
+    audio.play().catch(() => {});
+
+    // После завершения анимации скрываем страницу и показываем профиль
+    setTimeout(() => {
+        startPage.style.display = 'none';
+        startPage.style.transform = '';
+        startPage.style.opacity = '1';
+
+        document.getElementById('header-ui').style.display = 'block';
+        document.getElementById('bottom-nav').style.display = 'flex';
+        
+        nav(1);
+        showToast();
+    }, 900);
+}
+
+    // ==========================================
+    // НАВИГАЦИЯ
+    // ==========================================
+    function nav(n) { 
+    // Скрываем все страницы
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); 
+    
+    // Показываем нужную
+    const targetPage = document.getElementById('p' + n);
+    if (targetPage) {
+        targetPage.classList.add('active-page');
+    }
+
+    // Режим тюрьмы
+    document.body.classList.toggle('prison-mode', n === 8);
+
+    // Управление интерфейсом
+    const navBar = document.getElementById('bottom-nav');
+    if (navBar) navBar.style.display = (n === 0) ? 'none' : 'flex';
+    const headerUi = document.getElementById('header-ui');
+    if (headerUi) headerUi.style.display = (n === 0) ? 'none' : 'flex';
+    
+    // ПОДСВЕТКА: Теперь работает для любого n, если есть элемент n+номер
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const activeIcon = document.getElementById('n' + n); 
+    if (activeIcon) activeIcon.classList.add('active'); 
+
+    // Доп. функции
+    if (n === 5) renderContent('lecs');
+    if (n === 6) renderContent('laws');
+    
+    window.scrollTo(0, 0); 
+}
+
+    // ==========================================
+    // СОХРАНЕНИЕ И ЗАГРУЗКА ДАННЫХ
+    // ==========================================
+    function storeData() {
+        try {
+            const data = {
+                callsign: document.getElementById('callsign')?.value || '',
+                surname: document.getElementById('surname')?.value || '',
+                name: document.getElementById('name')?.value || '',
+                patronymic: document.getElementById('patronymic')?.value || '',
+                static: document.getElementById('static')?.value || '',
+                notes: document.getElementById('notes')?.value || '',
+                cash: document.getElementById('cash')?.value || '',
+                savings: document.getElementById('savings')?.value || '',
+                depV1: document.getElementById('depV1')?.value || '',
+                depV2: document.getElementById('depV2')?.value || '',
+                depT1: document.getElementById('depT1')?.value || '',
+                depT2: document.getElementById('depT2')?.value || '',
+                rank: document.getElementById('rank-display')?.innerText || '',
+                unit: document.getElementById('unit-display')?.innerText || '',
+                homes: getAssetData('l-homes'),
+                autos: getAssetData('l-autos'),
+                biz: getAssetData('l-biz')
+            };
+            localStorage.setItem(KEYS.DATA, JSON.stringify(data));
+        } catch (e) { console.error('Ошибка сохранения:', e); }
+    }
+
+    function loadAll() {
+        try {
+            const d = JSON.parse(localStorage.getItem(KEYS.DATA) || '{}');
+            ['callsign', 'surname', 'name', 'patronymic', 'static', 'notes', 'cash', 'savings', 'depV1', 'depV2', 'depT1', 'depT2'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = d[id] || '';
+            });
+            document.getElementById('rank-display').innerText = d.rank || "Звание";
+            document.getElementById('unit-display').innerText = d.unit || "Подразделение";
+            ['homes', 'autos', 'biz'].forEach(t => {
+                const list = document.getElementById('l-' + t);
+                if (list) list.innerHTML = '';
+                (d[t] || []).forEach(v => addNew(t, v.n, v.p));
+            });
+            renderContent('lecs');
+            renderContent('laws');
+            renderFiles();
+            checkPrisonTimer();
+            checkSuppliesOnLoad();
+        } catch (e) { console.error('Ошибка загрузки:', e); }
+    }
+
+    function getAssetData(id) {
+        return Array.from(document.querySelectorAll(`#${id} .asset-row`)).map(r => ({
+            n: r.querySelector('.in-name')?.value || '',
+            p: r.querySelector('.in-price')?.value || ''
+        }));
+    }
+
+    function addNew(t, n='', p='') {
+        const div = document.createElement('div'); 
+        div.className = "asset-row"; 
+        div.style = "display:grid; grid-template-columns: 1fr 1fr 40px; gap:8px; margin-bottom:10px;";
+        div.innerHTML = `<input type="text" class="in-name" value="${n}" placeholder="Назв."><input type="text" class="in-price" value="${p}" placeholder="₽" oninput="formatRubles(this);storeData()"><button class="del-btn" onclick="this.parentElement.remove();storeData()">✕</button>`;
+        document.getElementById('l-'+t).appendChild(div);
+    }
+
+    // ==========================================
+    // ИЗОБРАЖЕНИЯ (АВАТАР, КАРТЫ)
+    // ==========================================
+    function storeImg(i, t) {
+        const f = i.files[0]; if(!f) return;
+        const r = new FileReader(); 
+        r.onload = e => { 
+            db.transaction("files", "readwrite").objectStore("files")
+              .put({id: t, data: e.target.result})
+              .onsuccess = loadAll; 
+        }; 
+        r.readAsDataURL(f);
+    }
+
+    function renderFiles() {
+        if(!db) return;
+        db.transaction("files").objectStore("files").getAll().onsuccess = e => {
+            document.getElementById('maps-list').innerHTML = '';
+            e.target.result.forEach(f => {
+                if(f.id === 'avatar') { 
+                    document.getElementById('view-ava').src = f.data; 
+                    document.getElementById('view-ava').style.display = 'block'; 
+                    document.getElementById('label-ava').style.display = 'none'; 
+                }
+                if(f.id.startsWith('maps')) {
+                    const div = document.createElement('div'); 
+                    div.className = "card";
+                    div.innerHTML = `<img src="${f.data}" style="width:100%; border-radius:12px; margin-bottom:10px;"><button class="btn-main btn-secondary" style="color:var(--red)" onclick="delFile('${f.id}')">УДАЛИТЬ КАРТУ</button>`;
+                    document.getElementById('maps-list').appendChild(div);
+                }
+            });
+        };
+    }
+
+    function delFile(id) { 
+        if(confirm("Удалить?")) db.transaction("files", "readwrite").objectStore("files").delete(id).onsuccess = loadAll; 
+    }
+
+    // ==========================================
+    // ЛЕКЦИИ И ЗАКОНЫ
+    // ==========================================
+    function saveContent(type) {
+        const prefix = type === 'lecs' ? 'in-lec' : 'in-law';
+        const key = type === 'lecs' ? KEYS.LECS : KEYS.LAWS;
+        
+        const t = document.getElementById(prefix + '-title').value;
+        const b = document.getElementById(prefix + '-text').value;
+        const file = document.getElementById(prefix + '-file').files[0];
+        
+        if(!t || !b) return alert("Заполните поля!");
+
+        const proceed = (imgData = null) => {
+            let data = JSON.parse(localStorage.getItem(key) || '[]');
+            data.push({ id: Date.now(), t, b, img: imgData });
+            localStorage.setItem(key, JSON.stringify(data));
+            
+            // Очистка и закрытие
+            document.getElementById(prefix + '-title').value = '';
+            document.getElementById(prefix + '-text').value = '';
+            document.getElementById(prefix + '-file').value = '';
+            closeModal(type === 'lecs' ? 'lec-editor' : 'law-editor');
+            renderContent(type);
+        };
+
+        if(file) {
+            const r = new FileReader();
+            r.onload = e => proceed(e.target.result);
+            r.readAsDataURL(file);
+        } else {
+            proceed();
+        }
+    }
+
+    function renderContent(type) {
+        const key = type === 'lecs' ? KEYS.LECS : KEYS.LAWS;
+        const containerId = type === 'lecs' ? 'l-lecs-list' : 'l-laws-list';
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const items = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; opacity:0.3;">
+                    <div style="font-size:30px; margin-bottom:10px;">📋</div>
+                    <div>Список пуст</div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = items.slice().reverse().map(i => `
+            <div class="card-content">
+                <div class="card-content-title">${i.t}</div>
+                <div class="card-content-body">${i.b}</div>
+                ${i.img ? `<img src="${i.img}" style="width:100%; border-radius:8px; margin-top:12px; border:1px solid #333;">` : ''}
+                
+                <div class="card-actions">
+                    <button class="btn-action-small" style="color:var(--accent);" 
+                            onclick="navigator.clipboard.writeText('${i.b.replace(/'/g, "\\'")}'); alert('Текст скопирован!')">
+                        📋 КОПИРОВАТЬ
+                    </button>
+                    <button class="btn-action-small" style="color:var(--red);" 
+                            onclick="deleteItem('${key}', ${i.id}, '${type}')">
+                        🗑 УДАЛИТЬ
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deleteItem(key, id, type) {
+        if(confirm("Удалить эту запись?")) {
+            let items = JSON.parse(localStorage.getItem(key) || '[]');
+            items = items.filter(i => i.id !== id);
+            localStorage.setItem(key, JSON.stringify(items));
+            renderContent(type);
+        }
+    }
+
+    // ==========================================
+    // ТАЙМЕРЫ (ОБЩИЙ, ТЮРЬМА, ПОСТАВКИ)
+    // ==========================================
+    // Общий таймер
+    function setTimer(min) { stopTimer(); tSec = min * 60; updateTimerDisplay(); }
+    function startTimer() { if (tInt || tSec <= 0) return; tInt = setInterval(() => { tSec--; updateTimerDisplay(); if (tSec <= 0) { stopTimer(); alert("ВРЕМЯ ВЫШЛО!"); } }, 1000); }
+    function stopTimer() { clearInterval(tInt); tInt = null; }
+    function resetTimer() { stopTimer(); tSec = 0; updateTimerDisplay(); }
+    function updateTimerDisplay() { 
+        let m = Math.floor(tSec / 60); let s = tSec % 60; 
+        const display = document.getElementById('t-val'); 
+        if (display) display.innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`; 
+    }
+
+    // Таймер тюрьмы
+    function setPrisonType(type) {
+        selectedType = type;
+        const isPrison = type === 'ТЮРЬМА';
+        
+        document.getElementById('typePrison').style.opacity = isPrison ? '1' : '0.4';
+        document.getElementById('typePrison').style.background = isPrison ? 'var(--accent)' : '#1a221a';
+        document.getElementById('typePrison').style.color = isPrison ? '#000' : 'var(--accent)';
+        
+        document.getElementById('typeDemorgan').style.opacity = isPrison ? '0.4' : '1';
+        document.getElementById('typeDemorgan').style.background = isPrison ? '#1a221a' : 'var(--accent)';
+        document.getElementById('typeDemorgan').style.color = isPrison ? 'var(--accent)' : '#000';
+    }
+
+    function startPrisonTimer() {
+        const val = parseInt(document.getElementById('timeValue').value);
+        const unit = parseInt(document.getElementById('timeUnit').value);
+        if (!val || val <= 0) return alert("Укажите время!");
+
+        const durationMs = val * unit * 60 * 1000;
+        const endTime = Date.now() + durationMs;
+        
+        localStorage.setItem(KEYS.PRISON_END, endTime);
+        localStorage.setItem(KEYS.PRISON_TYPE, selectedType);
+
+        updatePrisonUI(true);
+        runPrisonTicker();
+    }
+
+    function checkPrisonTimer() {
+        const endTime = parseInt(localStorage.getItem(KEYS.PRISON_END) || 0);
+        if (endTime > Date.now()) {
+            selectedType = localStorage.getItem(KEYS.PRISON_TYPE) || 'ТЮРЬМА';
+            updatePrisonUI(true);
+            runPrisonTicker();
+        }
+    }
+
+    function runPrisonTicker() {
+        if (prisonInterval) clearInterval(prisonInterval);
+        prisonInterval = setInterval(() => {
+            const endTime = parseInt(localStorage.getItem(KEYS.PRISON_END) || 0);
+            const remaining = endTime - Date.now();
+            if (remaining <= 0) {
+                clearInterval(prisonInterval);
+                finishPrisonTimer();
+                return;
+            }
+
+            const totalSeconds = Math.floor(remaining / 1000);
+            const d = Math.floor(totalSeconds / 86400);
+            const h = Math.floor((totalSeconds % 86400) / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            
+            let display = d > 0 ? d + "д " : "";
+            display += `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            
+            const el = document.getElementById('prisonCountdown');
+            if(el) el.innerText = display;
+        }, 1000);
+    }
+
+    function finishPrisonTimer() {
+        document.getElementById('prisonCountdown').innerText = "СРОК ОКОНЧЕН";
+        localStorage.removeItem(KEYS.PRISON_END);
+        localStorage.removeItem(KEYS.PRISON_TYPE);
+        alert(`Срок (${selectedType}) истек!`);
+        updatePrisonUI(false);
+    }
+
+    function stopPrisonTimer() {
+        if(confirm("Сбросить таймер?")) {
+            clearInterval(prisonInterval);
+            localStorage.removeItem(KEYS.PRISON_END);
+            localStorage.removeItem(KEYS.PRISON_TYPE);
+            updatePrisonUI(false);
+        }
+    }
+
+    function updatePrisonUI(active) {
+        document.getElementById('timerDisplay').style.display = active ? 'block' : 'none';
+        if(active) document.getElementById('prisonStatusTitle').innerText = `ЗАКЛЮЧЕНИЕ: ${selectedType}`;
+        else document.getElementById('timeValue').value = '';
+    }
+
+    // Таймеры поставок
+    const supplyKeys = { orbita: KEYS.SUPPLY_ORBITA, n7: KEYS.SUPPLY_N7, sklad: KEYS.SUPPLY_SKLAD };
+
+    function startSupply(id) {
+        const endAt = Date.now() + (4 * 60 * 60 * 1000); // 4 часа
+        localStorage.setItem(supplyKeys[id], endAt);
+        runSupplyTimer(id, endAt);
+    }
+
+    function runSupplyTimer(id, endAt) {
+        const display = document.getElementById('timer-' + id);
+        if (supplyIntervals[id]) clearInterval(supplyIntervals[id]);
+
+        display.classList.add('timer-running');
+
+        supplyIntervals[id] = setInterval(() => {
+            const diff = endAt - Date.now();
+            if (diff <= 0) {
+                clearInterval(supplyIntervals[id]);
+                localStorage.removeItem(supplyKeys[id]);
+                display.innerText = "ГОТОВ";
+                display.classList.remove('timer-running');
+                return;
+            }
+
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            display.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function checkSuppliesOnLoad() {
+        Object.keys(supplyKeys).forEach(id => {
+            const endAt = parseInt(localStorage.getItem(supplyKeys[id]) || 0);
+            if (endAt > Date.now()) runSupplyTimer(id, endAt);
+        });
+    }
+
+    function resetSupply(id) {
+        if (confirm("Сбросить таймер?")) {
+            clearInterval(supplyIntervals[id]);
+            localStorage.removeItem(supplyKeys[id]);
+            const display = document.getElementById('timer-' + id);
+            display.innerText = "ГОТОВ";
+            display.classList.remove('timer-running');
+        }
+    }
+
+    // ==========================================
+    // ПРОЧЕЕ (КАЛЕНДАРЬ, МУЗЫКА, СВАЙПЫ, ИНФО)
+    // ==========================================
+    function toggleMusicManual(e) {
+    e.stopPropagation();
+    const btn = document.querySelector('.music-toggle');
+    const icon = document.getElementById('music-icon');
+    
+    if (audio.paused) {
+        audio.play().catch(() => {});
+        icon.innerText = '🔊';
+        btn.setAttribute('active', 'true');
+    } else {
+        audio.pause();
+        icon.innerText = '🔇';
+        btn.removeAttribute('active');
+    }
+}
+    const clickSound = new Audio('click.mp3'); 
+    document.addEventListener('mousedown', e => { if(e.target.closest('.btn-main, .object-item, .nav-item, button')) clickSound.play().catch(()=>{}); });
+
+    let touchStartX = 0, touchEndX = 0;
+    function toggleSideMenu(isOpen) { 
+        const panel = document.getElementById('sidePanel'); 
+        const overlay = document.getElementById('sideOverlay'); 
+        panel.classList.toggle('open', isOpen); 
+        overlay.style.display = isOpen ? 'block' : 'none'; 
+    }
+    document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+    document.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; if (touchStartX - touchEndX > 100 && touchStartX > window.innerWidth - 100) toggleSideMenu(true); if (touchEndX - touchStartX > 100) toggleSideMenu(false); });
+
+    function openCalendar() { toggleSideMenu(false); document.getElementById('calOverlay').style.display = 'block'; setTimeout(() => document.getElementById('calModal').classList.add('show'), 10); renderCalendar(); }
+    function closeCalendar() { document.getElementById('calModal').classList.remove('show'); setTimeout(() => document.getElementById('calOverlay').style.display = 'none', 300); }
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const label = document.getElementById('monthLabel');
+        grid.innerHTML = '';
+        const year = currentViewDate.getFullYear(), month = currentViewDate.getMonth();
+        const months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        label.innerText = `${months[month]} ${year}`;
+        ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].forEach(d => grid.innerHTML += `<div class="day-name">${d}</div>`);
+        const firstDay = new Date(year, month, 1).getDay();
+        const shift = firstDay === 0 ? 6 : firstDay - 1;
+        for (let i = 0; i < shift; i++) grid.innerHTML += `<div></div>`;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const notes = JSON.parse(localStorage.getItem(KEYS.CALENDAR) || '{}');
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${month + 1}-${d}`;
+            const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+            const hasNote = notes[dateStr] ? 'has-note' : '';
+            grid.innerHTML += `<div class="day-cell ${isToday?'today':''} ${hasNote}" onclick="editDayNote('${dateStr}')">${d}</div>`;
+        }
+    }
+    function changeMonth(step) { currentViewDate.setMonth(currentViewDate.getMonth() + step); renderCalendar(); }
+    function editDayNote(dateStr) {
+        let notes = JSON.parse(localStorage.getItem(KEYS.CALENDAR) || '{}');
+        let newNote = prompt(`Событие на ${dateStr}:`, notes[dateStr] || "");
+        if (newNote === null) return;
+        if (newNote === "") delete notes[dateStr]; else notes[dateStr] = newNote;
+        localStorage.setItem(KEYS.CALENDAR, JSON.stringify(notes));
+        renderCalendar();
+    }
+
+    function formatRubles(input) {
+        let cursor = input.selectionStart, oldLen = input.value.length;
+        let raw = input.value.replace(/\D/g, "");
+        if (!raw) { input.value = ""; return; }
+        let formatted = new Intl.NumberFormat('ru-RU').format(raw) + " ₽";
+        input.value = formatted;
+        let finalPos = Math.max(0, Math.min(cursor + (formatted.length - oldLen), formatted.length - 2));
+        input.setSelectionRange(finalPos, finalPos);
+    }
+
+    const objectDetails = {
+        cgb: { title: "Поставки от ЦГБ 3 (ЦГБ 7)", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/cgb3and7.png?raw=true", desc: "Подробное описание маршрута..." },
+        fso: { title: "Поставки от ФСО", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/FSO.png?raw=true", desc: "Протоколы взаимодействия..." },
+        vsrf: { title: "Поставки от ВС РФ", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/VSRF.png?raw=true", desc: "Маршруты..." },
+        kraz: { title: "Война за КрАЗ", img: "https://github.com/Grom66/-GROM66-.github.io/blob/main/Kraz.png?raw=true", desc: "" }
+    };
+
+    function openInfo(type) {
+        const data = objectDetails[type];
+        const container = document.getElementById('infoData');
+        container.innerHTML = `<h2>${data.title}</h2><img src="${data.img}" alt="${data.title}" onerror="this.src='https://via.placeholder.com/600x300'"><p>${data.desc}</p>`;
+        document.getElementById('infoOverlay').style.display = 'block';
+    }
+
+    function closeInfo() { document.getElementById('infoOverlay').style.display = 'none'; }
+
+    function fillSelections() {
+        const ranks = ['Рядовой','Ефрейтор','Младший сержант','Сержант','Старший сержант','Старшина','Прапорщик','Старший прапорщик','Младший лейтенант','Лейтенант','Старший лейтенант','Капитан','Майор','Подполковник','Полковник','Генерал-майор','Генерал-лейтенант','Генерал-полковник','Генерал армии'];
+        const rCont = document.getElementById('rank-list'); rCont.innerHTML = '';
+        ranks.forEach(r => { 
+            const d = document.createElement('div'); d.className="opt-item"; d.innerText=r; 
+            d.onclick=() => { document.getElementById('rank-display').innerText=r; storeData(); closeModal('rank'); }; 
+            rCont.appendChild(d); 
+        });
+        const units = ['Рота Охраны и Обеспечения', 'Силы Специальных Операций', 'Военный Комиссариат', 'Управление Военной Полиции', 'Военная Академия'];
+        const uCont = document.getElementById('unit-list'); uCont.innerHTML = '';
+        units.forEach(u => { 
+            const d = document.createElement('div'); d.className="opt-item"; d.innerText=u; 
+            d.onclick=() => { document.getElementById('unit-display').innerText=u; storeData(); closeModal('unit'); }; 
+            uCont.appendChild(d); 
+        });
+    }
+
+    function openModal(id) { document.getElementById(id+'Overlay').style.display='block'; setTimeout(() => document.getElementById(id+'Modal').classList.add('show'), 10); }
+    function closeModal(id) { document.getElementById(id+'Modal').classList.remove('show'); setTimeout(() => document.getElementById(id+'Overlay').style.display='none', 400); }
+
+    // Часы и обновление
+    setInterval(() => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('ru-RU', { hour12: false });
+        document.getElementById('clock').innerText = timeStr;
+        document.getElementById('system-clock').innerText = timeStr + " MSK";
+    }, 1000);
+
+    // Инициализация
+    fillSelections();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    startPage.style.filter = 'blur(4px)';
+setTimeout(() => { startPage.style.filter = ''; }, 900);
+</script>
+</body>
+</html>
